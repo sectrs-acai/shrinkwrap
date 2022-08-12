@@ -14,6 +14,7 @@ import shutil
 
 
 from shrinkwrap.commands import build
+from shrinkwrap.commands import inspect
 
 
 def formatter(prog):
@@ -48,6 +49,7 @@ def main():
 	# Register all the commands.
 	cmds = {}
 	cmds[build.add_parser(subparsers, formatter)] = build
+	cmds[inspect.add_parser(subparsers, formatter)] = inspect
 
 	# Parse the arguments.
 	args = parser.parse_args()
