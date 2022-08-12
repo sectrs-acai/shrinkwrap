@@ -13,6 +13,9 @@ import argparse
 import shutil
 
 
+from shrinkwrap.commands import build
+
+
 def formatter(prog):
 	width = shutil.get_terminal_size().columns
 	width -= 2
@@ -44,6 +47,7 @@ def main():
 
 	# Register all the commands.
 	cmds = {}
+	cmds[build.add_parser(subparsers, formatter)] = build
 
 	# Parse the arguments.
 	args = parser.parse_args()
