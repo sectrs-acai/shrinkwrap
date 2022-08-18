@@ -61,5 +61,10 @@ def dispatch(args):
 	if args.action == 'merge':
 		print(json.dumps(merged, indent=4))
 	else:
-		# TODO:
-		assert(False)
+		resolveb = config.resolveb(merged)
+
+		if args.action == 'resolveb':
+			print(json.dumps(resolveb, indent=4))
+		else:
+			# TODO:
+			assert(False)
