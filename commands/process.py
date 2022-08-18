@@ -1,4 +1,6 @@
+import json
 import os
+import shrinkwrap.utils.config as config
 
 
 cmd_name = os.path.splitext(os.path.basename(__file__))[0]
@@ -53,5 +55,11 @@ def dispatch(args):
 	execute the subcommand, with the arguments the user passed on the
 	command line. The arguments comply with those requested in add_parser().
 	"""
-	print(args.action)
-	print(args.config)
+	filename = config.filename(args.config)
+	merged = config.load(filename)
+
+	if args.action == 'merge':
+		print(json.dumps(merged, indent=4))
+	else:
+		# TODO:
+		assert(False)
