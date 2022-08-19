@@ -407,3 +407,49 @@ def resolveb(config):
 
 	return _config_sort(config)
 
+
+def resolver(config, rtvars):
+	"""
+	Resolves the run-time macros (artifacts, rtvars, etc) and fixes up the
+	config. Expects a config that was previously resolved with resolveb().
+	"""
+	run = config['run']
+
+	#Override the rtvars with any values supplied by the user and check that
+	#all rtvars are defined.
+	for k in run['rtvars']:
+		if k in rtvars:
+			run['rtvars'][k]['value'] = rtvars[k]
+	for k, v in run['rtvars'].items():
+		if v['value'] is None:
+			raise Exception(f'Error: {k} run-time variable not ' \
+					'set by user and no default available.')
+
+	# Create a lookup table with all the artifacts in their package
+	# locations, then do substitution to fully resolve the rtvars. An
+	# exception will be thrown if there are any macros that we don't have
+	# values for.
+	lut = {'artifact': {k: os.path.join(workspace.package, v['dst'])
+			for k, v in config['artifacts'].items()}}
+	for k in run['rtvars']:
+		v = run['rtvars'][k]
+		v['value'] = _string_substitute(str(v['value']), lut)
+		if v['type'] == 'path':
+			v['value'] = os.path.abspath(v['value'])
+
+	# Now create a lookup table with all the rtvars and resolve all the
+	# parameters. An exception will be thrown if there are any macros that
+	# we don't have values for.
+	lut = {'rtvar': {k: v['value'] for k, v in run['rtvars'].items()}}
+	for k in run['params']:
+		v = run['params'][k]
+		if v:
+			run['params'][k] = _string_substitute(str(v), lut)
+
+	# Assemble the final runtime command and stuff it into the config.
+	params = ' '.join([f'{k}' if v is None else f'{k}={v}'
+		for k, v in run['params'].items()])
+	terms = ' '.join([f'-C {t}.mode=raw' for t in run['terminals']])
+	run['cmd'] = f'{run["name"]} {params} {terms}'
+
+	return _config_sort(config)

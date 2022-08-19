@@ -1,6 +1,7 @@
 import json
 import os
 import shrinkwrap.utils.config as config
+import shrinkwrap.utils.rtvars as rtvars
 
 
 cmd_name = os.path.splitext(os.path.basename(__file__))[0]
@@ -66,5 +67,8 @@ def dispatch(args):
 		if args.action == 'resolveb':
 			print(json.dumps(resolveb, indent=4))
 		else:
-			# TODO:
-			assert(False)
+			rtvars_dict = rtvars.parse(args.rtvars)
+			resolver = config.resolver(resolveb, rtvars_dict)
+
+			if args.action == 'resolver':
+				print(json.dumps(resolver, indent=4))
