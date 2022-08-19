@@ -1,4 +1,7 @@
+import io
 import os
+import textwrap
+import shrinkwrap.utils.config as config
 
 
 cmd_name = os.path.splitext(os.path.basename(__file__))[0]
@@ -40,4 +43,85 @@ def dispatch(args):
 	execute the subcommand, with the arguments the user passed on the
 	command line. The arguments comply with those requested in add_parser().
 	"""
-	print(args.configs)
+	configs = config.load_resolveb_all(args.configs)
+
+	width = 80
+	indent = 21
+	vindent = 24
+
+	descs = []
+	for c in sorted(configs, key=lambda c: c['fullname']):
+		buf = io.StringIO()
+
+		buf.write(_text_wrap('name',
+				     c['name'],
+				     width=width,
+				     indent=indent,
+				     paraspace=1))
+		buf.write('\n')
+		buf.write(_text_wrap('description',
+				     c['description'],
+				     width=width,
+				     indent=indent,
+				     paraspace=1))
+		buf.write('\n')
+		rtvars = {k: v['value'] for k,v in c['run']['rtvars'].items()}
+		buf.write(_dict_wrap('run-time variables',
+				     rtvars,
+				     width=width,
+				     kindent=indent,
+				     vindent=vindent))
+
+		descs.append(buf.getvalue())
+
+	separator = '\n' + ('-' * width) + '\n\n'
+	all = separator.join(descs)
+	print(all)
+
+
+def _text_wrap(tag, text, width=80, indent=0, paraspace=1, end='\n'):
+	text = str(text)
+	tag = str(tag)
+	indent_pattern = ' ' * indent
+
+	lines = [textwrap.fill(l,
+			       width=width,
+			       initial_indent=indent_pattern,
+			       subsequent_indent=indent_pattern)
+		for l in text.splitlines() if l]
+
+	wrapped = ('\n' * (paraspace + 1)).join(lines)
+
+	if tag:
+		if len(tag) > indent - 2:
+			wrapped = f'{tag}:\n' + wrapped
+		else:
+			wrapped = f'{tag}:' + wrapped[len(tag) + 1:]
+
+	return wrapped + end
+
+
+def _dict_wrap(tag, dictionary, width=80, kindent=0, vindent=0, end='\n'):
+	if len(dictionary) == 0:
+		lines = [str(None)]
+	else:
+		dwidth = width - kindent
+		lines = []
+
+		for k, v in dictionary.items():
+			line = _text_wrap(k,
+					  v,
+					  width=dwidth,
+					  indent=vindent,
+					  paraspace=0,
+					  end='')
+			lines.append(line)
+
+	dtext = '\n'.join(lines)
+
+	return _text_wrap(tag,
+			  dtext,
+			  width=width,
+			  indent=kindent,
+			  paraspace=0,
+			  end=end)
