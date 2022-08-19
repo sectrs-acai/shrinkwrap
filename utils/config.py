@@ -457,6 +457,33 @@ def resolver(config, rtvars):
 	return _config_sort(config)
 
 
+def load_resolveb_all(names):
+	"""
+	Takes a list of config names and returns a corresponding list of
+	resolved configs. If the input list is None or empty, all non-partial
+	standard configs are loaded and resolved.
+	"""
+	explicit = names is not None and len(names) != 0
+	configs = []
+
+	if not explicit:
+		p = workspace.config
+		names = [f for f in os.listdir(p)
+				if os.path.isfile(os.path.join(p, f))]
+
+	for name in names:
+		try:
+			file = filename(name)
+			merged = load(file)
+			resolved = resolveb(merged)
+			configs.append(resolved)
+		except Exception:
+			if explicit:
+				raise
+
+	return configs
+
+
 class Script:
 	def __init__(self,
 		     summary,

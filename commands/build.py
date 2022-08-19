@@ -74,24 +74,7 @@ def dispatch(args):
 	execute the subcommand, with the arguments the user passed on the
 	command line. The arguments comply with those requested in add_parser().
 	"""
-	explicit = len(args.configs) != 0
-	configs = []
-
-	if not explicit:
-		p = workspace.config
-		args.configs = [f for f in os.listdir(p)
-					if os.path.isfile(os.path.join(p, f))]
-
-	for name in args.configs:
-		try:
-			filename = config.filename(name)
-			merged = config.load(filename)
-			resolved = config.resolve(merged)
-			configs.append(resolved)
-		except Exception:
-			if explicit:
-				raise
-
+	configs = config.load_resolveb_all(args.configs)
 	graph = config.graph(configs)
 	script = _mk_script(graph)
 
