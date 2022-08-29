@@ -1,4 +1,3 @@
-import json
 import os
 import shrinkwrap.utils.config as config
 import shrinkwrap.utils.rtvars as rtvars
@@ -60,15 +59,15 @@ def dispatch(args):
 	merged = config.load(filename)
 
 	if args.action == 'merge':
-		print(json.dumps(merged, indent=4))
+		print(config.dumps(merged))
 	else:
 		resolveb = config.resolveb(merged)
 
 		if args.action == 'resolveb':
-			print(json.dumps(resolveb, indent=4))
+			print(config.dumps(resolveb))
 		else:
 			rtvars_dict = rtvars.parse(args.rtvars)
 			resolver = config.resolver(resolveb, rtvars_dict)
 
 			if args.action == 'resolver':
-				print(json.dumps(resolver, indent=4))
+				print(config.dumps(resolver))

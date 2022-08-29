@@ -1,5 +1,4 @@
 import graphlib
-import json
 import multiprocessing
 import os
 import stat
@@ -103,7 +102,7 @@ def dispatch(args):
 		for c in configs:
 			cfg_name = os.path.join(workspace.package, c['name'])
 			with open(cfg_name, 'w') as cfg:
-				json.dump(c, cfg, indent=4)
+				config.dump(c, cfg)
 
 
 def _mk_script(graph):

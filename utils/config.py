@@ -318,6 +318,14 @@ def load(filename):
 	return _config_sort(config)
 
 
+def dumps(config):
+	return json.dumps(config, indent=4)
+
+
+def dump(config, fileobj):
+	return json.dump(config, fileobj, indent=4)
+
+
 def resolveb(config):
 	"""
 	Resolves the build-time macros (params, artifacts, etc) and fixes up the
