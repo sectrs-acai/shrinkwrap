@@ -42,6 +42,26 @@ def main():
 						'<ryan.roberts@arm.com>.',
 					 formatter_class=formatter)
 
+	parser.add_argument('-R', '--runtime',
+		metavar='engine', required=False, default='null',
+		choices=['null', 'docker', 'docker-local', 'podman', 'podman-local'],
+		help="""Specifies the environment in which to execute build and
+		     run commands. If 'null', executes natively on the host.
+		     'docker' attempts to download the image from dockerhub and
+		     execute the commands in a container. 'docker-local' is like
+		     'docker' but will only look for the image locally. 'podman'
+		     and 'podman-local' do the same as the docker equivalents
+		     but use podman as the container engine. Defaults to
+		     'null'.""")
+
+	parser.add_argument('-I', '--image',
+		metavar='name',
+		required=False,
+		default='shrinkwrap/base-debian11',
+		help="""If using a container runtime, specifies the name of the
+		     image to use. Defaults to the official shrinkwrap image on
+		     dockerhub.""")
+
 	subparsers = parser.add_subparsers(dest='command',
 					   metavar='<command>',
 					   title=f'Supported commands (run '

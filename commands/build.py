@@ -7,6 +7,7 @@ import subprocess
 import tempfile
 import shrinkwrap.utils.config as config
 import shrinkwrap.utils.label as label
+import shrinkwrap.utils.runtime as runtime
 import shrinkwrap.utils.workspace as workspace
 
 
@@ -81,7 +82,19 @@ def dispatch(args):
 	if args.dry_run:
 		print(script)
 	else:
-		_build(graph, args.parallelism, args.verbose)
+		# Run under a runtime environment, which may just run commands
+		# natively on the host or may execute commands in a container,
+		# depending on what the user specified.
+		with runtime.Runtime(args.runtime, args.image) as rt:
+			os.makedirs(workspace.build, exist_ok=True)
+			rt.add_volume(workspace.build)
+
+			os.makedirs(workspace.package, exist_ok=True)
+			rt.add_volume(workspace.package)
+
+			rt.start()
+
+			_build(graph, args.parallelism, args.verbose)
 
 		build_sh_name = os.path.join(workspace.package, 'build.sh')
 		with open(build_sh_name, 'w') as build_sh:
@@ -202,14 +215,14 @@ def _run_script(args):
 	# automatically destroyed when we exit the scope. We can't use a temp
 	# file directly because it won't let us add the executable permission
 	# while its open.
-	with tempfile.TemporaryDirectory() as tmpdir:
+	with tempfile.TemporaryDirectory(dir=workspace.build) as tmpdir:
 		tmpfilename = os.path.join(tmpdir, 'script.sh')
 
 		with open(tmpfilename, 'w') as tmpfile:
 			tmpfile.write(script.commands())
 
 		# Run the script and save the output.
-		res = subprocess.run(['bash', tmpfilename],
+		res = subprocess.run(runtime.mkcmd(['bash', tmpfilename]),
 				text=True,
 				stdin=subprocess.DEVNULL,
 				stdout=subprocess.PIPE,

@@ -5,6 +5,7 @@ import termcolor
 import shrinkwrap.utils.config as config
 import shrinkwrap.utils.process as process
 import shrinkwrap.utils.rtvars as rtvars
+import shrinkwrap.utils.runtime as runtime
 import shrinkwrap.utils.workspace as workspace
 
 
@@ -178,13 +179,22 @@ def dispatch(args):
 
 			pm.set_handler(_log)
 
-	# Create a process manager with 1 process; the fvp. As it boots
-	# _find_term_ports() will add the netcat processes in parallel. It will
-	# exit once all processes have terminated. The fvp will terminate when
-	# its told to `poweroff` and netcat will terminate when it sees the fvp
-	# has gone.
-	pm = process.ProcessManager(_find_term_ports)
-	pm.add(process.Process(resolver['run']['cmd'],
-			       False,
-			       ('fvp', _next_color())))
-	pm.run()
+	# Run under a runtime environment, which may just run commands natively
+	# on the host or may execute commands in a container, depending on what
+	# the user specified.
+	with runtime.Runtime(args.runtime, args.image) as rt:
+		for rtvar in resolver['run']['rtvars'].values():
+			if rtvar['type'] == 'path':
+				rt.add_volume(rtvar['value'])
+		rt.start()
+
+		# Create a process manager with 1 process; the fvp. As it boots
+		# _find_term_ports() will add the netcat processes in parallel.
+		# It will exit once all processes have terminated. The fvp will
+		# terminate when its told to `poweroff` and netcat will
+		# terminate when it sees the fvp has gone.
+		pm = process.ProcessManager(_find_term_ports)
+		pm.add(process.Process(resolver['run']['cmd'],
+				       False,
+				       ('fvp', _next_color())))
+		pm.run()

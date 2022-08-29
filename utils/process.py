@@ -3,6 +3,7 @@ import os
 import shlex
 import selectors
 import subprocess
+import shrinkwrap.utils.runtime as runtime
 
 
 class Process:
@@ -67,7 +68,8 @@ class ProcessManager:
 	def _activate(self, proc):
 		stdin=None if proc.interactive else subprocess.DEVNULL
 
-		proc._popen = subprocess.Popen(proc.args,
+		proc._popen = subprocess.Popen(runtime.mkcmd(proc.args,
+							     proc.interactive),
 					       stdin=stdin,
 					       stdout=subprocess.PIPE,
 					       stderr=subprocess.STDOUT,
