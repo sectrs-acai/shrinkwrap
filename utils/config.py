@@ -6,18 +6,22 @@ import yaml
 import shrinkwrap.utils.workspace as workspace
 
 
-def _component_normalize(component):
+def _component_normalize(component, name):
 	"""
 	Fills in any missing lists or dictionaries with empty ones.
 	"""
 	if 'repo' not in component:
 		component['repo'] = {}
 
-	if 'remote' not in component['repo']:
-		component['repo']['remote'] = None
+	if all(type(v) != dict for v in component['repo'].values()):
+		component['repo'] = {'.': component['repo']}
 
-	if 'revision' not in component['repo']:
-		component['repo']['revision'] = None
+	for repo in component['repo'].values():
+		if 'remote' not in repo:
+			repo['remote'] = None
+
+		if 'revision' not in repo:
+			repo['revision'] = None
 
 	if 'buildroot' not in component:
 		component['buildroot'] = None
@@ -44,8 +48,8 @@ def _build_normalize(build):
 	"""
 	Fills in any missing lists or dictionaries with empty ones.
 	"""
-	for component in build.values():
-		_component_normalize(component)
+	for name, component in build.items():
+		_component_normalize(component, name)
 
 
 def _run_normalize(run):
@@ -600,19 +604,24 @@ def graph(configs):
 		while ts.is_active():
 			for name in ts.get_ready():
 				component = config['build'][name]
-				giturl = component['repo']['remote']
-				gitrev = component['repo']['revision']
 
 				g = Script('Syncing git repo', config["name"], name, preamble=pre)
 				g.append(f'# Sync git repo for config={config["name"]} component={name}.')
 				g.append(f'pushd $BUILD/{config["name"]}')
-				g.append(f'if [ ! -d "{name}" ]; then')
-				g.append(f'\tgit clone {giturl} {name}')
-				g.append(f'\tpushd {name}')
-				g.append(f'\tgit checkout --force {gitrev}')
-				g.append(f'\tgit submodule update --init --checkout --recursive --force')
-				g.append(f'\tpopd')
-				g.append(f'fi')
+
+				for gitlocal, repo in component['repo'].items():
+					gitlocal = os.path.normpath(os.path.join(name, gitlocal))
+					gitremote = repo['remote']
+					gitrev = repo['revision']
+
+					g.append(f'if [ ! -d "{gitlocal}" ]; then')
+					g.append(f'\tgit clone {gitremote} {gitlocal}')
+					g.append(f'\tpushd {gitlocal}')
+					g.append(f'\tgit checkout --force {gitrev}')
+					g.append(f'\tgit submodule update --init --checkout --recursive --force')
+					g.append(f'\tpopd')
+					g.append(f'fi')
+
 				g.append(f'popd')
 				g.seal()
 				graph[g] = [gl2]
