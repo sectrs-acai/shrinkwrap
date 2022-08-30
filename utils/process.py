@@ -10,10 +10,11 @@ class Process:
 	"""
 	A wrapper to a process that should be managed by the ProcessManager.
 	"""
-	def __init__(self, args, interactive, data):
+	def __init__(self, args, interactive, data, run_to_end):
 		self.args = shlex.split(args)
 		self.interactive = interactive
 		self.data = data
+		self.run_to_end = run_to_end
 		self._popen = None
 
 
@@ -76,13 +77,16 @@ class ProcessManager:
 					       text=True)
 
 		self._register(proc._popen.stdout, (self._proc_handler, proc))
-		self._active += 1
+
+		if proc.run_to_end:
+			self._active += 1
 
 	def _proc_handler(self, fileobj, proc):
 		data = fileobj.read()
 		if data == '':
 			self._sel.unregister(fileobj)
-			self._active -= 1
+			if proc.run_to_end:
+				self._active -= 1
 		else:
 			if self._handler:
 				self._handler(self, proc, data)

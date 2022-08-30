@@ -175,7 +175,8 @@ def dispatch(args):
 
 				pm.add(process.Process(cmd,
 						       interactive,
-						       (name, _next_color())))
+						       (name, _next_color()),
+						       False))
 
 			pm.set_handler(_log)
 
@@ -196,5 +197,6 @@ def dispatch(args):
 		pm = process.ProcessManager(_find_term_ports)
 		pm.add(process.Process(resolver['run']['cmd'],
 				       False,
-				       ('fvp', _next_color())))
+				       ('fvp', _next_color()),
+				       True))
 		pm.run()
