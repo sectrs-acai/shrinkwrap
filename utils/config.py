@@ -13,11 +13,8 @@ def _component_normalize(component):
 	if 'repo' not in component:
 		component['repo'] = {}
 
-	if 'fetch' not in component['repo']:
-		component['repo']['fetch'] = None
-
-	if 'name' not in component['repo']:
-		component['repo']['name'] = None
+	if 'remote' not in component['repo']:
+		component['repo']['remote'] = None
 
 	if 'revision' not in component['repo']:
 		component['repo']['revision'] = None
@@ -603,7 +600,7 @@ def graph(configs):
 		while ts.is_active():
 			for name in ts.get_ready():
 				component = config['build'][name]
-				giturl = os.path.join(component['repo']['fetch'], component['repo']['name'])
+				giturl = component['repo']['remote']
 				gitrev = component['repo']['revision']
 
 				g = Script('Syncing git repo', config["name"], name, preamble=pre)

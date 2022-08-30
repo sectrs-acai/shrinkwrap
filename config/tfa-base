@@ -9,8 +9,7 @@ description: >-
 build:
   tfa:
     repo:
-      fetch: https://git.trustedfirmware.org
-      name: TF-A/trusted-firmware-a.git
+      remote: https://git.trustedfirmware.org/TF-A/trusted-firmware-a.git
       revision: master
 
     buildroot: build

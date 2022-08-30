@@ -6,8 +6,7 @@ description: >-
 build:
   hafnium:
     repo:
-      fetch: https://git.trustedfirmware.org
-      name: hafnium/hafnium.git
+      remote: https://git.trustedfirmware.org/hafnium/hafnium.git
       revision: master
 
     buildroot: out
