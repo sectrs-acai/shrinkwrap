@@ -1,35 +1,37 @@
-{
-	"description": "Trusted Firmware for A-class CPUs. This provides a baseline configuration that can be customized by higher layers.\nTODO: Validate this config.",
-	"build": {
-		"tfa": {
-			"repo": {
-				"fetch": "https://git.trustedfirmware.org",
-				"name": "TF-A/trusted-firmware-a.git",
-				"revision": "master"
-			},
-			"toolchain": "gcc-arm-10.3-2021.07-x86_64-aarch64-none-elf",
-			"buildroot": "build",
-			"build": [
-				"make ${params:} all fip"
-			],
-			"params": {
-				"PLAT": "fvp",
-				"DEBUG": "0",
-				"LOG_LEVEL": "40",
-				"ENABLE_SVE_FOR_NS": "1",
-				"ENABLE_SVE_FOR_SWD": "1",
-				"ARM_DISABLE_TRUSTED_WDOG": "1",
-				"FVP_HW_CONFIG_DTS": "fdts/fvp-base-gicv3-psci-1t.dts",
-				"ARM_ARCH_MINOR": "5",
-				"BRANCH_PROTECTION": "1",
-				"CTX_INCLUDE_PAUTH_REGS": "1",
-				"CTX_INCLUDE_EL2_REGS": "1",
-				"CTX_INCLUDE_MTE_REGS": "1"
-			},
-			"artifacts": {
-				"BL1": "fvp/release/bl1.bin",
-				"FIP": "fvp/release/fip.bin"
-			}
-		}
-	}
-}
+%YAML 1.2
+---
+description: >-
+  Trusted Firmware for A-class CPUs. This provides a baseline configuration that
+  can be customized by higher layers.
+
+  TODO: Validate this config.
+
+build:
+  tfa:
+    repo:
+      fetch: https://git.trustedfirmware.org
+      name: TF-A/trusted-firmware-a.git
+      revision: master
+
+    buildroot: build
+
+    params:
+      PLAT: fvp
+      DEBUG: 0
+      LOG_LEVEL: 40
+      ENABLE_SVE_FOR_NS: 1
+      ENABLE_SVE_FOR_SWD: 1
+      ARM_DISABLE_TRUSTED_WDOG: 1
+      FVP_HW_CONFIG_DTS: fdts/fvp-base-gicv3-psci-1t.dts
+      ARM_ARCH_MINOR: 5
+      BRANCH_PROTECTION: 1
+      CTX_INCLUDE_PAUTH_REGS: 1
+      CTX_INCLUDE_EL2_REGS: 1
+      CTX_INCLUDE_MTE_REGS: 1
+
+    build:
+      - make ${params:} all fip
+
+    artifacts:
+      BL1: fvp/release/bl1.bin
+      FIP: fvp/release/fip.bin

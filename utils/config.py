@@ -1,8 +1,8 @@
 import graphlib
 import io
-import json
 import os
 import re
+import yaml
 import shrinkwrap.utils.workspace as workspace
 
 
@@ -292,7 +292,8 @@ def load(filename):
 	fully normalized, validated and merged.
 	"""
 	def _config_load(filename):
-		config = json.load(open(filename))
+		with open(filename) as file:
+			config = yaml.safe_load(file)
 		config_dir = os.path.dirname(filename)
 
 		config = _config_normalize(config)
@@ -319,11 +320,15 @@ def load(filename):
 
 
 def dumps(config):
-	return json.dumps(config, indent=4)
+	return dump(config, None)
 
 
 def dump(config, fileobj):
-	return json.dump(config, fileobj, indent=4)
+	return yaml.safe_dump(config,
+			      fileobj,
+			      explicit_start=True,
+			      sort_keys=False,
+			      version=(1, 2))
 
 
 def resolveb(config):

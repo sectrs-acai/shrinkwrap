@@ -1,23 +1,23 @@
-{
-	"description": "Hafnium is the Secure Partition Manager that runs at SEL2.",
-	"build": {
-		"hafnium": {
-			"repo": {
-				"fetch": "https://git.trustedfirmware.org",
-				"name": "hafnium/hafnium.git",
-				"revision": "master"
-			},
-			"toolchain": "gcc-arm-10.3-2021.07-x86_64-aarch64-none-elf",
-			"buildroot": "out",
-			"build": [
-				"PATH=$$PWD/prebuilts/linux-x64/clang/bin:$$PWD/prebuilts/linux-x64/dtc:$$PATH make ${params:}"
-			],
-			"params": {
-				"PROJECT": "reference"
-			},
-			"artifacts": {
-				"HAFNIUM": "reference/secure_aem_v8a_fvp_clang/hafnium.bin"
-			}
-		}
-	}
-}
+%YAML 1.2
+---
+description: >-
+  Hafnium is the Secure Partition Manager that runs at SEL2.
+
+build:
+  hafnium:
+    repo:
+      fetch: https://git.trustedfirmware.org
+      name: hafnium/hafnium.git
+      revision: master
+
+    buildroot: out
+
+    params:
+      PROJECT: reference
+
+    build:
+      - PATH=$$PWD/prebuilts/linux-x64/clang/bin:$$PWD/prebuilts/linux-x64/dtc:$$PATH
+        make ${params:}
+
+    artifacts:
+      HAFNIUM: reference/secure_aem_v8a_fvp_clang/hafnium.bin
