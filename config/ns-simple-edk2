@@ -1,0 +1,32 @@
+%YAML 1.2
+---
+description: >-
+  Brings together TF-A and EDK2 to provide a simple non-secure world environment
+  running on FVP. The user can optionally supply a rootfs image which should
+  contain the appropriate EFI System Partition (ESP) for UEFI to consume.
+
+layers:
+  - tfa-base
+  - edk2-base
+  - FVP_Base_RevC-2xAEMvA-base
+
+build:
+  tfa:
+    params:
+      BL33: ${artifact:EDK2}
+
+run:
+  rtvars:
+    ROOTFS:
+      type: path
+      value: ''
+
+  params:
+    -C bp.virtioblockdevice.image_path: ${rtvar:ROOTFS}
+
+  terminals:
+    bp.terminal_0:
+      friendly: tfa+edk2+linux
+      interactive: true
+    bp.terminal_1:
+      friendly: edk2

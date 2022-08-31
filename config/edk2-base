@@ -1,0 +1,44 @@
+%YAML 1.2
+---
+description: >-
+  EDK2 UEFI firmware implementation for the FVP.
+
+  Builds acpica from source as part of the build process.
+
+build:
+  edk2:
+    repo:
+      edk2:
+        remote: https://github.com/tianocore/edk2.git
+        revision: master
+      edk2-platforms:
+        remote: https://github.com/tianocore/edk2-platforms.git
+        revision: master
+      acpica:
+        remote: https://github.com/acpica/acpica.git
+        revision: master
+
+    buildroot: Build
+
+    prebuild:
+      - export WORKSPACE=$$PWD
+      - export GCC5_AARCH64_PREFIX=$$CROSS_COMPILE
+      - export PACKAGES_PATH=$$WORKSPACE/edk2:$$WORKSPACE/edk2-platforms
+      - export IASL_PREFIX=$$WORKSPACE/acpica/generate/unix/bin/
+      - export PYTHON_COMMAND=/usr/bin/python3
+
+    params:
+      -a: AARCH64
+      -t: GCC5
+      -p: Platform/ARM/VExpressPkg/ArmVExpress-FVP-AArch64.dsc
+      -b: RELEASE
+
+    build:
+      - make -j -C acpica
+      # edksetup.sh invokes unbound variables to relax temporarily.
+      - set +u; source edk2/edksetup.sh; set -u
+      - make -j -C edk2/BaseTools
+      - build -n 0 ${param:join_space}
+
+    artifacts:
+      EDK2: ArmVExpress-FVP-AArch64/RELEASE_GCC5/FV/FVP_AARCH64_EFI.fd
