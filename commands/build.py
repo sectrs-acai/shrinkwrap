@@ -28,8 +28,8 @@ def add_parser(parser, formatter):
 		     <SHRINKWRAP_CONFIG>, building is done at <SHRINKWRAP_BUILD>
 		     and output is saved to <SHRINKWRAP_PACKAGE>. The package
 		     includes all FW binaries, a manifest and a build.sh script
-		     containing all the commands that were executed. Any
-		     pre-existing package directory is first deleted.
+		     containing all the commands that were executed per config.
+		     Any pre-existing config package directory is first deleted.
 		     <SHRINKWRAP_CONFIG>, <SHRINKWRAP_BUILD> and
 		     <SHRINKWRAP_PACKAGE> default to 'config', 'build' and
 		     'package' directories within the directory containing the
@@ -76,10 +76,10 @@ def dispatch(args):
 	"""
 	configs = config.load_resolveb_all(args.configs)
 	graph = config.graph(configs)
-	script = _mk_script(graph)
 
 	if args.dry_run:
-		print(script)
+		script = _mk_script(graph)
+		print(_mk_script(graph))
 	else:
 		# Run under a runtime environment, which may just run commands
 		# natively on the host or may execute commands in a container,
@@ -95,14 +95,20 @@ def dispatch(args):
 
 			_build(graph, args.parallelism, args.verbose)
 
-		build_sh_name = os.path.join(workspace.package, 'build.sh')
-		with open(build_sh_name, 'w') as build_sh:
-			build_sh.write(script)
-
 		for c in configs:
+			# Dump the config.
 			cfg_name = os.path.join(workspace.package, c['name'])
 			with open(cfg_name, 'w') as cfg:
 				config.dump(c, cfg)
+
+			# Dump the script to build the config.
+			graph = config.graph([c])
+			script = _mk_script(graph)
+			build_name = os.path.join(workspace.package,
+						  c['name'] + '_artifacts',
+						  'build.sh')
+			with open(build_name, 'w') as build:
+				build.write(script)
 
 
 def _mk_script(graph):
