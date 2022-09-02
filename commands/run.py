@@ -1,8 +1,7 @@
 import os
 import re
-import sys
-import termcolor
 import shrinkwrap.utils.config as config
+import shrinkwrap.utils.logger as logger
 import shrinkwrap.utils.process as process
 import shrinkwrap.utils.rtvars as rtvars
 import shrinkwrap.utils.runtime as runtime
@@ -80,65 +79,7 @@ def dispatch(args):
 		if len(t['friendly']) > name_field:
 			name_field = min(len(t['friendly']), max_name_field)
 
-	# Some state needed for allocating colors to fvp uart terminals and for
-	# ensuring the output is pretty.
-	colors = ['cyan', 'blue', 'green', 'yellow', 'magenta', 'grey', 'red']
-	color_next = 0
-	proc_prev_name = None
-	proc_prev_char = None
-
-	def _next_color():
-		"""
-		Returns the name of the next color in the set. Cycles through
-		the 7 colors we have available. I've never seen an FVP with more
-		than 6 terminals so this should be sufficient.
-		"""
-		nonlocal color_next
-		color = color_next
-		color_next += 1
-		color_next %= len(colors)
-		return colors[color]
-
-	def _log(pm, proc, data):
-		"""
-		Logs text data from one of the processes (FVP or one of its uart
-		terminals) to the terminal. Text is colored and a tag is added
-		on the left to identify the originating process.
-		"""
-		nonlocal name_field
-		nonlocal proc_prev_name
-		nonlocal proc_prev_char
-
-		name = proc.data[0]
-		color = proc.data[1]
-
-		# Make the tag.
-		if len(name) > name_field:
-			name = name[:name_field-3] + '...'
-		name = f'{{:>{max_name_field}}}'.format(name)
-
-		lines = data.splitlines(keepends=True)
-		start = 0
-
-		# If the cursor is not at the start of a new line, then if the
-		# new log is for the same proc that owns the first part of the
-		# line, just continue from there without adding a new tag. If
-		# the first part of the line has a different owner, insert a
-		# newline and add a tag for the new owner.
-		if proc_prev_char != '\n':
-			if proc_prev_name == name:
-				termcolor.cprint(f'{lines[0]}', color, end='')
-				start = 1
-			else:
-				print(f'\n', end='')
-
-		for line in lines[start:]:
-			termcolor.cprint(f'[ {name} ] {line}', color, end='')
-
-		proc_prev_name = name
-		proc_prev_char = lines[-1][-1]
-
-		sys.stdout.flush()
+	log = logger.Logger(name_field)
 
 	def _find_term_ports(pm, proc, data):
 		"""
@@ -150,7 +91,7 @@ def dispatch(args):
 		standard logger.
 		"""
 		# First, forward to the standard log handler.
-		_log(pm, proc, data)
+		log.log(pm, proc, data)
 
 		found_all_ports = True
 
@@ -175,10 +116,10 @@ def dispatch(args):
 
 				pm.add(process.Process(cmd,
 						       interactive,
-						       (name, _next_color()),
+						       (log.alloc_data(name),),
 						       False))
 
-			pm.set_handler(_log)
+			pm.set_handler(log.log)
 
 	# Run under a runtime environment, which may just run commands natively
 	# on the host or may execute commands in a container, depending on what
@@ -197,6 +138,6 @@ def dispatch(args):
 		pm = process.ProcessManager(_find_term_ports)
 		pm.add(process.Process(resolver['run']['cmd'],
 				       False,
-				       ('fvp', _next_color()),
+				       (log.alloc_data('fvp'),),
 				       True))
 		pm.run()
