@@ -31,6 +31,12 @@ def add_parser(parser, formatter):
 		help="""Config to run. Must have been previously built into
 		     <SHRINKWRAP_PACKAGE>.""")
 
+	cmdp.add_argument('-o', '--overlay',
+		metavar='cfgfile', required=False,
+		help="""Optional config file overlay to override run-time
+		     settings. Only entries within the "run" section are
+		     used.""")
+
 	cmdp.add_argument('-r', '--rtvar',
 		metavar='key=value', required=False, default=[],
 		action='append',
@@ -54,10 +60,14 @@ def dispatch(args):
 	execute the subcommand, with the arguments the user passed on the
 	command line. The arguments comply with those requested in add_parser().
 	"""
-	assert(not args.tune)
+	overlay = None
+	if args.overlay:
+		overlay = config.filename(args.overlay)
+		overlay = config.load(overlay)
+		overlay = {'run': overlay['run']}
 
 	filename = os.path.join(workspace.package, args.config)
-	resolveb = config.load(filename)
+	resolveb = config.load(filename, overlay)
 	rtvars_dict = rtvars.parse(args.rtvar)
 	resolver = config.resolver(resolveb, rtvars_dict)
 

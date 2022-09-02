@@ -293,7 +293,7 @@ def filename(name):
 		return os.path.join(workspace.config, name)
 
 
-def load(filename):
+def load(filename, overlay=None):
 	"""
 	Load a config from disk and return it as a dictionary. The config is
 	fully normalized, validated and merged.
@@ -317,6 +317,9 @@ def load(filename):
 		return master
 
 	config = _config_load(filename)
+
+	if overlay:
+		config = _config_merge(config, overlay)
 
 	# Now that the config is fully merged, we don't need the layers
 	# property. Its also useful to store the name.
@@ -479,7 +482,7 @@ def resolver(config, rtvars):
 	return _config_sort(config)
 
 
-def load_resolveb_all(names):
+def load_resolveb_all(names, overlayname=None):
 	"""
 	Takes a list of config names and returns a corresponding list of
 	resolved configs. If the input list is None or empty, all non-partial
@@ -493,10 +496,16 @@ def load_resolveb_all(names):
 		names = [f for f in os.listdir(p)
 				if os.path.isfile(os.path.join(p, f))]
 
+	overlay = None
+	if overlayname:
+		overlay = filename(overlayname)
+		overlay = load(overlay)
+		overlay = {'build': overlay['build']}
+
 	for name in names:
 		try:
 			file = filename(name)
-			merged = load(file)
+			merged = load(file, overlay)
 			resolved = resolveb(merged)
 			configs.append(resolved)
 		except Exception:

@@ -45,6 +45,12 @@ def add_parser(parser, formatter):
 		     configs are provided, all non-partial configs in the config
 		     store are built.""")
 
+	cmdp.add_argument('-o', '--overlay',
+		metavar='cfgfile', required=False,
+		help="""Optional config file overlay to override build-time
+		     settings. Only entries within the "build" section are
+		     used. Applied to all configs being built.""")
+
 	cmdp.add_argument('-p', '--parallelism',
 		required=False, default=4, metavar='count', type=int,
 		help="""Maximum number of tasks that will be performed in
@@ -74,7 +80,7 @@ def dispatch(args):
 	execute the subcommand, with the arguments the user passed on the
 	command line. The arguments comply with those requested in add_parser().
 	"""
-	configs = config.load_resolveb_all(args.configs)
+	configs = config.load_resolveb_all(args.configs, args.overlay)
 	graph = config.graph(configs)
 
 	if args.dry_run:
