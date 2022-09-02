@@ -1,11 +1,11 @@
 import graphlib
-import multiprocessing
 import os
-import stat
-import subprocess
+import shutil
 import tempfile
 import shrinkwrap.utils.config as config
+import shrinkwrap.utils.logger as logger
 import shrinkwrap.utils.label as label
+import shrinkwrap.utils.process as process
 import shrinkwrap.utils.runtime as runtime
 import shrinkwrap.utils.workspace as workspace
 
@@ -208,85 +208,108 @@ def _update_labels(labels, mask, config, component, summary):
 				l1.update(_mk_tag(cfg, cmp) + ' ' + summary)
 
 
-def _run_script(args):
-	"""
-	Runs a provided script fragment. Intendend to be called in parallel from
-	worker threads.
-	"""
-	script = args[0]
-	verbose = args[1]
+def _run_script(pm, data, script):
+	# Write the script out to a file in a temp directory, and wrap the
+	# directory name and command to run in a Process. Add the Process to the
+	# ProcessManager. On completion, the caller must destroy the directory.
 
-	# Write the script out to a file in a temp directory, which will get
-	# automatically destroyed when we exit the scope. We can't use a temp
-	# file directly because it won't let us add the executable permission
-	# while its open.
-	with tempfile.TemporaryDirectory(dir=workspace.build) as tmpdir:
-		tmpfilename = os.path.join(tmpdir, 'script.sh')
+	tmpdir = tempfile.mkdtemp(dir=workspace.build)
+	tmpfilename = os.path.join(tmpdir, 'script.sh')
+	with open(tmpfilename, 'w') as tmpfile:
+		tmpfile.write(script.commands())
 
-		with open(tmpfilename, 'w') as tmpfile:
-			tmpfile.write(script.commands())
-
-		# Run the script and save the output.
-		res = subprocess.run(runtime.mkcmd(['bash', tmpfilename]),
-				text=True,
-				stdin=subprocess.DEVNULL,
-				stdout=subprocess.PIPE,
-				stderr=subprocess.STDOUT)
-
-	# Only print the output if it failed or we are in verbose mode.
-	if verbose or res.returncode:
-		print(res.stdout)
-
-	# Raise an exception if it failed.
-	if res.returncode:
-		raise Exception(f'Error: Failed to execute {script}')
-
-	return script
+	# Start the process asynchronously.
+	pm.add(process.Process(f'bash {tmpfilename}',
+			       False,
+			       (data, script, tmpdir),
+			       True))
 
 
 def _build(graph, parallelism, verbose):
 	labels, mask = _mk_labels(graph)
 	lc = _mk_label_controller(labels, not verbose)
 
+	queue = []
+	active = 0
+	log = logger.Logger(20)
 	ts = graphlib.TopologicalSorter(graph)
+
+	def _pump(pm):
+		nonlocal queue
+		nonlocal active
+		nonlocal log
+		while len(queue) > 0 and active < parallelism:
+			frag = queue.pop()
+			_update_labels(labels,
+				       mask,
+				       frag.config,
+				       frag.component,
+				       frag.summary + '...')
+			data = log.alloc_data(str(frag)) if verbose else []
+			_run_script(pm, data, frag)
+			active += 1
+
+	def _log(pm, proc, data):
+		if verbose:
+			log.log(pm, proc, data)
+		else:
+			proc.data[0].append(data)
+
+	def _complete(pm, proc, retcode):
+		nonlocal queue
+		nonlocal active
+		nonlocal ts
+
+		data = proc.data[0]
+		frag = proc.data[1]
+		tmpdir = proc.data[2]
+
+		shutil.rmtree(tmpdir)
+
+		if retcode:
+			if not verbose:
+				print(''.join(data))
+			raise Exception(f"Error: Failed to execute '{frag}'")
+
+		state = 'Done' if frag.final else 'Waiting...'
+		_update_labels(labels,
+			       mask,
+			       frag.config,
+			       frag.component,
+			       state)
+		if frag.final:
+			mask[frag.config][frag.component] = False
+
+		ts.done(frag)
+		active -= 1
+		queue.extend(ts.get_ready())
+		_pump(pm)
+
+		lc.update()
+
+	# Initially set all labels to waiting. They will be updated as the
+	# fragments execute.
+	_update_labels(labels, mask, None, None, 'Waiting...')
+
+	# The process manager will run all added processes in the background and
+	# give callbacks whenever there is output available and when each
+	# process terminates. _pump() adds processes to the set.
+	pm = process.ProcessManager(_log, _complete)
+
+	# Fill the queue with all the initial script fragments which do not have
+	# start dependencies.
 	ts.prepare()
+	queue.extend(ts.get_ready())
 
-	with multiprocessing.Pool(processes=parallelism) as pool:
-		while ts.is_active():
-			frags =  [(f, verbose) for f in ts.get_ready()]
-
-			# Put any components that do not have active jobs for
-			# this cycle in the wait state, and advertise what the
-			# active components are doing.
-			_update_labels(labels, mask, None, None, 'Waiting...')
-			for frag, _ in frags:
-				_update_labels(labels,
-					       mask,
-					       frag.config,
-					       frag.component,
-					       frag.summary + '...')
-			lc.update()
-
-			# Queue up all the script fragments to the pool and mark
-			# their components as waiting as the scripts finish.
-			for frag in pool.imap_unordered(_run_script, frags):
-				state = 'Done' if frag.final else 'Waiting...'
-				_update_labels(labels,
-					       mask,
-					       frag.config,
-					       frag.component,
-					       state)
-
-				if frag.final:
-					mask[frag.config][frag.component] = False
-
-				lc.update()
-				ts.done(frag)
+	# Call _pump() initially to start as many jobs as parallelism allows.
+	# Then enter the pm.
+	_pump(pm)
+	lc.update()
+	pm.run()
 
 	# Mark all components as done. This should be a nop since the script
 	# should have indicated if it was the last step for a given
 	# config/component and we would have already set it to done. But this
 	# catches anything that might have slipped through.
 	_update_labels(labels, mask, None, None, 'Done')
-
 	lc.update()
