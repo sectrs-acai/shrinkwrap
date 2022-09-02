@@ -24,8 +24,9 @@ class ProcessManager:
 	that it can capture all their (stdout + stderr) output and pass it to a
 	handler delegate.
 	"""
-	def __init__(self, handler=None):
+	def __init__(self, handler=None, terminate_handler=None):
 		self._handler = handler
+		self._terminate_handler = terminate_handler
 		self._procs = []
 		self._active = 0
 		self._sel = None
@@ -48,15 +49,19 @@ class ProcessManager:
 
 			while self._active > 0:
 				for key, mask in self._sel.select():
-					handler = key.data[0]
-					data = key.data[1]
-					handler(key.fileobj, data)
+					proc = key.data
+					data = key.fileobj.read()
+
+					if data == '':
+						self._deactivate(proc)
+					else:
+						if self._handler:
+							self._handler(self,
+								      proc,
+								      data)
 		finally:
 			for proc in self._procs:
-				if proc._popen:
-					proc._popen.terminate()
-					proc._popen.__exit__(None, None, None)
-					proc._popen = None
+				self._deactivate(proc)
 
 			self._sel.close()
 			self._sel = None
@@ -76,17 +81,30 @@ class ProcessManager:
 					       stderr=subprocess.STDOUT,
 					       text=True)
 
-		self._register(proc._popen.stdout, (self._proc_handler, proc))
+		self._register(proc._popen.stdout, proc)
 
 		if proc.run_to_end:
 			self._active += 1
 
-	def _proc_handler(self, fileobj, proc):
-		data = fileobj.read()
-		if data == '':
-			self._sel.unregister(fileobj)
-			if proc.run_to_end:
-				self._active -= 1
-		else:
-			if self._handler:
-				self._handler(self, proc, data)
+	def _deactivate(self, proc):
+		if not proc._popen:
+			return
+
+		if proc.run_to_end:
+			self._active -= 1
+
+		self._sel.unregister(proc._popen.stdout)
+
+		proc._popen.kill()
+		try:
+			proc._popen.communicate()
+		except:
+			pass
+		proc._popen.__exit__(None, None, None)
+		retcode = proc._popen.poll()
+		proc._popen = None
+
+		if self._terminate_handler:
+			self._terminate_handler(self, proc, retcode)
+
+
