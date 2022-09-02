@@ -38,11 +38,12 @@ def add_parser(parser, formatter):
 		     merged config) or "resolver" (resolve run-time macros
 		     within the build-time resolved config).""")
 
-	cmdp.add_argument('-r', '--rtvars',
-		metavar='rtvars', required=False,
-		help="""Comma-separated list of <key>=<value> pairs, specifying
-		     override values for any runtime variables defined by the
-		     config. Overrides for variables that have a default
+	cmdp.add_argument('-r', '--rtvar',
+		metavar='key=value', required=False, default=[],
+		action='append',
+		help="""Override value for a single runtime variable defined by
+		     the config. Specify option multiple times for multiple
+		     variables. Overrides for variables that have a default
 		     specified by the config are optional. Only used if action
 		     is "resolver".""")
 
@@ -66,7 +67,7 @@ def dispatch(args):
 		if args.action == 'resolveb':
 			print(config.dumps(resolveb))
 		else:
-			rtvars_dict = rtvars.parse(args.rtvars)
+			rtvars_dict = rtvars.parse(args.rtvar)
 			resolver = config.resolver(resolveb, rtvars_dict)
 
 			if args.action == 'resolver':

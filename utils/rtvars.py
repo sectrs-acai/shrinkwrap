@@ -1,12 +1,11 @@
-import csv
-
-
-def parse(text):
+def parse(args):
 	rtvars = {}
 
-	if text is not None:
-		for pairs in csv.reader([text], delimiter=','):
-			for key, value in csv.reader(pairs, delimiter='='):
-				rtvars[key] = value
+	for pair in args:
+		try:
+			key, value = pair.split('=')
+			rtvars[key] = value
+		except ValueError:
+			raise Exception(f'Error: invalid rtvar {pair}')
 
 	return rtvars

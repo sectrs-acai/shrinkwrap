@@ -31,11 +31,12 @@ def add_parser(parser, formatter):
 		help="""Config to run. Must have been previously built into
 		     <SHRINKWRAP_PACKAGE>.""")
 
-	cmdp.add_argument('-r', '--rtvars',
-		metavar='rtvars', required=False,
-		help="""Comma-separated list of <key>=<value> pairs, specifying
-		     override values for any runtime variables defined by the
-		     config. Overrides for variables that have a default
+	cmdp.add_argument('-r', '--rtvar',
+		metavar='key=value', required=False, default=[],
+		action='append',
+		help="""Override value for a single runtime variable defined by
+		     the config. Specify option multiple times for multiple
+		     variables. Overrides for variables that have a default
 		     specified by the config are optional.""")
 
 	cmdp.add_argument('-n', '--dry-run',
@@ -57,7 +58,7 @@ def dispatch(args):
 
 	filename = os.path.join(workspace.package, args.config)
 	resolveb = config.load(filename)
-	rtvars_dict = rtvars.parse(args.rtvars)
+	rtvars_dict = rtvars.parse(args.rtvar)
 	resolver = config.resolver(resolveb, rtvars_dict)
 
 	# If dry run, just output the FVP command that we would have run. We
