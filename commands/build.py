@@ -51,16 +51,17 @@ def add_parser(parser, formatter):
 		     settings. Only entries within the "build" section are
 		     used. Applied to all configs being built.""")
 
-	cmdp.add_argument('-p', '--parallelism',
+	cmdp.add_argument('-t', '--tasks',
 		required=False, default=4, metavar='count', type=int,
-		help="""Maximum number of tasks that will be performed in
-		     parallel. Tasks include syncing git repositories, building
-		     componenents and copying artifacts.""")
+		help="""Maximum number of "high-level" tasks that will be
+		     performed in parallel by Shrinkwrap. Tasks include syncing
+		     git repositories, building componenents and copying
+		     artifacts.""")
 
 	cmdp.add_argument('-v', '--verbose',
 		required=False, default=False, action='store_true',
 		help="""If specified, the output from all executed commands will
-		     be displayed. It is advisable to set parallelism to 1 when
+		     be displayed. It is advisable to set tasks to 1 when
 		     this option is selected.""")
 
 	cmdp.add_argument('-n', '--dry-run',
@@ -99,7 +100,7 @@ def dispatch(args):
 
 			rt.start()
 
-			_build(graph, args.parallelism, args.verbose)
+			_build(graph, args.tasks, args.verbose)
 
 		for c in configs:
 			# Dump the config.
@@ -231,7 +232,7 @@ def _run_script(pm, data, script):
 			       True))
 
 
-def _build(graph, parallelism, verbose):
+def _build(graph, tasks, verbose):
 	labels, mask = _mk_labels(graph)
 	lc = _mk_label_controller(labels, not verbose)
 
@@ -244,7 +245,7 @@ def _build(graph, parallelism, verbose):
 		nonlocal queue
 		nonlocal active
 		nonlocal log
-		while len(queue) > 0 and active < parallelism:
+		while len(queue) > 0 and active < tasks:
 			frag = queue.pop()
 			_update_labels(labels,
 				       mask,
@@ -307,7 +308,7 @@ def _build(graph, parallelism, verbose):
 	ts.prepare()
 	queue.extend(ts.get_ready())
 
-	# Call _pump() initially to start as many jobs as parallelism allows.
+	# Call _pump() initially to start as many tasks as are allowed.
 	# Then enter the pm.
 	_pump(pm)
 	lc.update()
