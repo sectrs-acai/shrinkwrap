@@ -34,11 +34,11 @@ build:
       -b: RELEASE
 
     build:
-      - make -j -C acpica
+      - make -j${param:jobs} -C acpica
       # edksetup.sh invokes unbound variables to relax temporarily.
       - set +u; source edk2/edksetup.sh; set -u
-      - make -j -C edk2/BaseTools
-      - build -n 0 ${param:join_space}
+      - make -j${param:jobs} -C edk2/BaseTools
+      - build -n ${param:jobs} ${param:join_space}
 
     artifacts:
       EDK2: ArmVExpress-FVP-AArch64/RELEASE_GCC5/FV/FVP_AARCH64_EFI.fd

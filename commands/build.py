@@ -58,6 +58,11 @@ def add_parser(parser, formatter):
 		     git repositories, building componenents and copying
 		     artifacts.""")
 
+	cmdp.add_argument('-j', '--jobs',
+		required=False, default=4, metavar='count', type=int,
+		help="""Maximum number of low-level jobs that will be
+		     performed in parallel by each component build task.""")
+
 	cmdp.add_argument('-v', '--verbose',
 		required=False, default=False, action='store_true',
 		help="""If specified, the output from all executed commands will
@@ -81,7 +86,8 @@ def dispatch(args):
 	execute the subcommand, with the arguments the user passed on the
 	command line. The arguments comply with those requested in add_parser().
 	"""
-	configs = config.load_resolveb_all(args.configs, args.overlay)
+	clivars = {'jobs': args.jobs}
+	configs = config.load_resolveb_all(args.configs, args.overlay, clivars)
 	graph = config.graph(configs)
 
 	if args.dry_run:

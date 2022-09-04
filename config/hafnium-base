@@ -15,6 +15,9 @@ build:
       PROJECT: reference
 
     build:
+      # Hafnium doesn't provide a mechanism to forward number of jobs to ninja,
+      # so it will always parallelize across all cpus. Ideally we would specify
+      # max jobs with ${param:jobs}.
       - PATH=$$PWD/prebuilts/linux-x64/clang/bin:$$PWD/prebuilts/linux-x64/dtc:$$PATH
         make ${param:join_equal}
 

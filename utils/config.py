@@ -3,6 +3,7 @@ import io
 import os
 import re
 import yaml
+import shrinkwrap.utils.clivars as uclivars
 import shrinkwrap.utils.workspace as workspace
 
 
@@ -341,7 +342,7 @@ def dump(config, fileobj):
 			      version=(1, 2))
 
 
-def resolveb(config):
+def resolveb(config, clivars={}):
 	"""
 	Resolves the build-time macros (params, artifacts, etc) and fixes up the
 	config. Based on the artifact dependencies, the component build graph is
@@ -405,30 +406,34 @@ def resolveb(config):
 
 		return artifact_map
 
-	def _substitute_macros(config, artifact_src_map):
+	def _substitute_macros(config, artifacts, clivars):
 
 		for desc in config['build'].values():
+			lut = {
+				'artifact': artifacts,
+				'param': dict(clivars),
+			}
+
 			for k in desc['params']:
 				v = desc['params'][k]
 				if v:
-					desc['params'][k] = _string_substitute(str(v), artifact_src_map)
-			params = {
-				'param': {
-					'join_equal': _mk_params(desc['params'], '='),
-					'join_space': _mk_params(desc['params'], ' '),
-				}
-			}
+					desc['params'][k] = _string_substitute(str(v), lut)
+
+			lut['param']['join_equal'] = _mk_params(desc['params'], '=')
+			lut['param']['join_space'] = _mk_params(desc['params'], ' ')
+
 			for i, s in enumerate(desc['prebuild']):
-				desc['prebuild'][i] = _string_substitute(s, params)
+				desc['prebuild'][i] = _string_substitute(s, lut)
 			for i, s in enumerate(desc['build']):
-				desc['build'][i] = _string_substitute(s, params)
+				desc['build'][i] = _string_substitute(s, lut)
 			for i, s in enumerate(desc['postbuild']):
-				desc['postbuild'][i] = _string_substitute(s, params)
+				desc['postbuild'][i] = _string_substitute(s, lut)
 
 	graph = _resolve_build_graph(config)
 	artifact_map = _resolve_artifact_map(config)
-	artifact_src_map = {'artifact': {k: os.path.join(workspace.build, v['src']) for k, v in artifact_map.items()}}
-	_substitute_macros(config, artifact_src_map)
+	artifact_src_map = {k: os.path.join(workspace.build, v['src']) for k, v in artifact_map.items()}
+	clivars = uclivars.get(**clivars)
+	_substitute_macros(config, artifact_src_map, clivars)
 
 	config['graph'] = graph
 	config['artifacts'] = artifact_map
@@ -436,11 +441,12 @@ def resolveb(config):
 	return _config_sort(config)
 
 
-def resolver(config, rtvars):
+def resolver(config, rtvars={}, clivars={}):
 	"""
 	Resolves the run-time macros (artifacts, rtvars, etc) and fixes up the
 	config. Expects a config that was previously resolved with resolveb().
 	"""
+	clivars = uclivars.get(**clivars)
 	run = config['run']
 
 	#Override the rtvars with any values supplied by the user and check that
@@ -457,8 +463,11 @@ def resolver(config, rtvars):
 	# locations, then do substitution to fully resolve the rtvars. An
 	# exception will be thrown if there are any macros that we don't have
 	# values for.
-	lut = {'artifact': {k: os.path.join(workspace.package, v['dst'])
-			for k, v in config['artifacts'].items()}}
+	lut = {
+		'param': dict(clivars),
+		'artifact': {k: os.path.join(workspace.package, v['dst'])
+				for k, v in config['artifacts'].items()},
+	}
 	for k in run['rtvars']:
 		v = run['rtvars'][k]
 		v['value'] = _string_substitute(str(v['value']), lut)
@@ -468,7 +477,10 @@ def resolver(config, rtvars):
 	# Now create a lookup table with all the rtvars and resolve all the
 	# parameters. An exception will be thrown if there are any macros that
 	# we don't have values for.
-	lut = {'rtvar': {k: v['value'] for k, v in run['rtvars'].items()}}
+	lut = {
+		'param': dict(clivars),
+		'rtvar': {k: v['value'] for k, v in run['rtvars'].items()}
+	}
 	for k in run['params']:
 		v = run['params'][k]
 		if v:
@@ -482,7 +494,7 @@ def resolver(config, rtvars):
 	return _config_sort(config)
 
 
-def load_resolveb_all(names, overlayname=None):
+def load_resolveb_all(names, overlayname=None, clivars={}):
 	"""
 	Takes a list of config names and returns a corresponding list of
 	resolved configs. If the input list is None or empty, all non-partial
@@ -506,7 +518,7 @@ def load_resolveb_all(names, overlayname=None):
 		try:
 			file = filename(name)
 			merged = load(file, overlay)
-			resolved = resolveb(merged)
+			resolved = resolveb(merged, clivars)
 			configs.append(resolved)
 		except Exception:
 			if explicit:

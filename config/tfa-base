@@ -28,6 +28,7 @@ build:
       CTX_INCLUDE_MTE_REGS: 1
 
     build:
+      # TODO: tfa has makefile dependency bug that prevents parallel make (-j > 1).
       - make ${param:join_equal} all fip
 
     artifacts:
