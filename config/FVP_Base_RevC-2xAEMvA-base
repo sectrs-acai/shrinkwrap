@@ -72,10 +72,6 @@ run:
     -C bp.smsc_91c111.enabled: 1
     -C bp.hostbridge.userNetworking: 1
     -C bp.hostbridge.userNetPorts: ${rtvar:LOCAL_NET_PORT}=22
-    -C bp.pl011_uart0.uart_enable: 1
-    -C bp.pl011_uart1.uart_enable: 1
-    -C bp.pl011_uart2.uart_enable: 1
-    -C bp.pl011_uart3.uart_enable: 1
     -C bp.secureflashloader.fname: ${rtvar:BL1}
     -C bp.flashloader0.fname: ${rtvar:FIP}
 
