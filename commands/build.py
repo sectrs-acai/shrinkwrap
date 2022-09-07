@@ -279,6 +279,11 @@ def _build(graph, tasks, verbose):
 
 		shutil.rmtree(tmpdir)
 
+		if retcode is None:
+			# Forcibly terminated due to errors elsewhere. No need
+			# to do anything further.
+			return
+
 		if retcode:
 			if not verbose:
 				print(''.join(data))

@@ -61,7 +61,10 @@ class ProcessManager:
 								      data)
 		finally:
 			for proc in self._procs:
-				self._deactivate(proc)
+				try:
+					self._deactivate(proc, force=True)
+				except:
+					pass
 
 			self._sel.close()
 			self._sel = None
@@ -86,7 +89,7 @@ class ProcessManager:
 		if proc.run_to_end:
 			self._active += 1
 
-	def _deactivate(self, proc):
+	def _deactivate(self, proc, force=False):
 		if not proc._popen:
 			return
 
@@ -101,10 +104,8 @@ class ProcessManager:
 		except:
 			pass
 		proc._popen.__exit__(None, None, None)
-		retcode = proc._popen.poll()
+		retcode = None if force else proc._popen.poll()
 		proc._popen = None
 
 		if self._terminate_handler:
 			self._terminate_handler(self, proc, retcode)
-
-
