@@ -642,13 +642,19 @@ def graph(configs):
 					gitlocal = os.path.normpath(os.path.join(name, gitlocal))
 					gitremote = repo['remote']
 					gitrev = repo['revision']
+					basedir = os.path.normpath(os.path.join(gitlocal, '..'))
+					sync = os.path.join(basedir, f'.{os.path.basename(gitlocal)}_sync')
 
-					g.append(f'if [ ! -d "{gitlocal}" ]; then')
+					g.append(f'if [ ! -d "{gitlocal}/.git" ] || [ -f "{sync}" ]; then')
+					g.append(f'\trm -rf {gitlocal} > /dev/null 2>&1 || true')
+					g.append(f'\tmkdir -p {basedir}')
+					g.append(f'\ttouch {sync}')
 					g.append(f'\tgit clone {gitremote} {gitlocal}')
 					g.append(f'\tpushd {gitlocal}')
 					g.append(f'\tgit checkout --force {gitrev}')
 					g.append(f'\tgit submodule update --init --checkout --recursive --force')
 					g.append(f'\tpopd')
+					g.append(f'\trm {sync}')
 					g.append(f'fi')
 
 				g.append(f'popd')
