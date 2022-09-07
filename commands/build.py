@@ -13,6 +13,10 @@ import shrinkwrap.utils.workspace as workspace
 cmd_name = os.path.splitext(os.path.basename(__file__))[0]
 
 
+def dflt_jobs():
+	return min(os.cpu_count() // 2, 32)
+
+
 def add_parser(parser, formatter):
 	"""
 	Part of the command interface expected by shrinkwrap.py. Adds the
@@ -52,16 +56,17 @@ def add_parser(parser, formatter):
 		     used. Applied to all configs being built.""")
 
 	cmdp.add_argument('-t', '--tasks',
-		required=False, default=4, metavar='count', type=int,
+		required=False, default=dflt_jobs(), metavar='count', type=int,
 		help="""Maximum number of "high-level" tasks that will be
 		     performed in parallel by Shrinkwrap. Tasks include syncing
 		     git repositories, building componenents and copying
-		     artifacts.""")
+		     artifacts. Default={}""".format(dflt_jobs()))
 
 	cmdp.add_argument('-j', '--jobs',
-		required=False, default=4, metavar='count', type=int,
+		required=False, default=dflt_jobs(), metavar='count', type=int,
 		help="""Maximum number of low-level jobs that will be
-		     performed in parallel by each component build task.""")
+		     performed in parallel by each component build task.
+		     Default={}""".format(dflt_jobs()))
 
 	cmdp.add_argument('-v', '--verbose',
 		required=False, default=False, action='store_true',
