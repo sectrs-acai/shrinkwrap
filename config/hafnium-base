@@ -16,7 +16,7 @@ build:
 
     build:
       - PATH=$$PWD/prebuilts/linux-x64/clang/bin:$$PWD/prebuilts/linux-x64/dtc:$$PATH
-        make ${params:}
+        make ${param:join_equal}
 
     artifacts:
       HAFNIUM: reference/secure_aem_v8a_fvp_clang/hafnium.bin

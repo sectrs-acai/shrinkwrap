@@ -272,6 +272,12 @@ def _string_substitute(string, lut, partial=False):
 	return new
 
 
+def _mk_params(params, separator):
+	pairs = [f'{k}' if v is None else f'{k}{separator}{v}'
+						for k, v in params.items()]
+	return ' '.join(pairs)
+
+
 def filename(name):
 	"""
 	Given a config name, finds the path to the config on disk. If the config
@@ -403,9 +409,12 @@ def resolveb(config):
 				v = desc['params'][k]
 				if v:
 					desc['params'][k] = _string_substitute(str(v), artifact_src_map)
-
-			params = ' '.join([f'{k}' if v is None else f'{k}={v}' for k, v in desc['params'].items()])
-			params = {'params': {None: params}}
+			params = {
+				'param': {
+					'join_equal': _mk_params(desc['params'], '='),
+					'join_space': _mk_params(desc['params'], ' '),
+				}
+			}
 			for i, s in enumerate(desc['prebuild']):
 				desc['prebuild'][i] = _string_substitute(s, params)
 			for i, s in enumerate(desc['build']):
@@ -463,8 +472,7 @@ def resolver(config, rtvars):
 			run['params'][k] = _string_substitute(str(v), lut)
 
 	# Assemble the final runtime command and stuff it into the config.
-	params = ' '.join([f'{k}' if v is None else f'{k}={v}'
-		for k, v in run['params'].items()])
+	params = _mk_params(run['params'], '=')
 	terms = ' '.join([f'-C {t}.mode=raw' for t in run['terminals']])
 	run['cmd'] = f'{run["name"]} {params} {terms}'
 

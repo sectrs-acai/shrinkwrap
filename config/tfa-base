@@ -29,7 +29,7 @@ build:
       CTX_INCLUDE_MTE_REGS: 1
 
     build:
-      - make ${params:} all fip
+      - make ${param:join_equal} all fip
 
     artifacts:
       BL1: fvp/release/bl1.bin
