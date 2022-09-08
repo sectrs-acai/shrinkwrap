@@ -12,8 +12,6 @@ build:
       remote: https://git.trustedfirmware.org/TF-A/trusted-firmware-a.git
       revision: master
 
-    buildroot: build
-
     params:
       PLAT: fvp
       DEBUG: 0
@@ -29,8 +27,8 @@ build:
 
     build:
       # TODO: tfa has makefile dependency bug that prevents parallel make (-j > 1).
-      - make ${param:join_equal} all fip
+      - make BUILD_BASE=${param:builddir} ${param:join_equal} all fip
 
     artifacts:
-      BL1: fvp/release/bl1.bin
-      FIP: fvp/release/fip.bin
+      BL1: ${param:builddir}/fvp/release/bl1.bin
+      FIP: ${param:builddir}/fvp/release/fip.bin

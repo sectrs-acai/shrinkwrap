@@ -18,10 +18,8 @@ build:
         remote: https://github.com/acpica/acpica.git
         revision: master
 
-    buildroot: Build
-
     prebuild:
-      - export WORKSPACE=$$PWD
+      - export WORKSPACE=${param:sourcedir}
       - export GCC5_AARCH64_PREFIX=$$CROSS_COMPILE
       - export PACKAGES_PATH=$$WORKSPACE/edk2:$$WORKSPACE/edk2-platforms
       - export IASL_PREFIX=$$WORKSPACE/acpica/generate/unix/bin/
@@ -38,7 +36,7 @@ build:
       # edksetup.sh invokes unbound variables to relax temporarily.
       - set +u; source edk2/edksetup.sh; set -u
       - make -j${param:jobs} -C edk2/BaseTools
-      - build -n ${param:jobs} ${param:join_space}
+      - build -n ${param:jobs} -D EDK2_OUT_DIR=${param:builddir} ${param:join_space}
 
     artifacts:
-      EDK2: ArmVExpress-FVP-AArch64/RELEASE_GCC5/FV/FVP_AARCH64_EFI.fd
+      EDK2: ${param:builddir}/RELEASE_GCC5/FV/FVP_AARCH64_EFI.fd

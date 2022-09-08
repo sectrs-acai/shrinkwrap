@@ -24,8 +24,11 @@ def _component_normalize(component, name):
 		if 'revision' not in repo:
 			repo['revision'] = None
 
-	if 'buildroot' not in component:
-		component['buildroot'] = None
+	if 'sourcedir' not in component:
+		component['sourcedir'] = None
+
+	if 'builddir' not in component:
+		component['builddir'] = None
 
 	if 'prebuild' not in component:
 		component['prebuild'] = []
@@ -121,7 +124,7 @@ def _component_sort(component):
 	Sort the component so that the keys are in a canonical order. This
 	improves readability by humans.
 	"""
-	lut = ['repo', 'buildroot', 'params',
+	lut = ['repo', 'sourcedir', 'builddir', 'params',
 			'prebuild', 'build', 'postbuild', 'artifacts']
 	lut = {k: i for i, k in enumerate(lut)}
 	return dict(sorted(component.items(), key=lambda x: lut[x[0]]))
@@ -400,9 +403,19 @@ def resolveb(config, clivars={}):
 
 		artifact_map = {}
 
-		for name, desc in config['build'].items():
+		for desc in config['build'].values():
+			lut = {
+				'param': {
+					'sourcedir': desc['sourcedir'],
+					'builddir': desc['builddir'],
+				},
+			}
+
+			for key, val in desc['artifacts'].items():
+				desc['artifacts'][key] = _string_substitute(val, lut)
+
 			locs = {key: {
-				'src': os.path.join(config['name'], name, desc['buildroot'], val),
+				'src': val,
 				'dst': os.path.join(config['name'], os.path.basename(val)),
 			} for key, val in desc['artifacts'].items()}
 
@@ -411,11 +424,14 @@ def resolveb(config, clivars={}):
 		return artifact_map
 
 	def _substitute_macros(config, artifacts, clivars):
-
 		for desc in config['build'].values():
 			lut = {
 				'artifact': artifacts,
-				'param': dict(clivars),
+				'param': {
+					**clivars,
+					'sourcedir': desc['sourcedir'],
+					'builddir': desc['builddir'],
+				},
 			}
 
 			for k in desc['params']:
@@ -433,9 +449,19 @@ def resolveb(config, clivars={}):
 			for i, s in enumerate(desc['postbuild']):
 				desc['postbuild'][i] = _string_substitute(s, lut)
 
+	# Compute the source and build directories for each component.
+	for name, desc in config['build'].items():
+		comp_dir = os.path.join(config['name'], name)
+		desc['sourcedir'] = os.path.join(workspace.build,
+						 'source',
+						 comp_dir)
+		desc['builddir'] = os.path.join(workspace.build,
+						'build',
+						comp_dir)
+
 	graph = _resolve_build_graph(config)
 	artifact_map = _resolve_artifact_map(config)
-	artifact_src_map = {k: os.path.join(workspace.build, v['src']) for k, v in artifact_map.items()}
+	artifact_src_map = {k: v['src'] for k, v in artifact_map.items()}
 	clivars = uclivars.get(**clivars)
 	_substitute_macros(config, artifact_src_map, clivars)
 
@@ -463,19 +489,27 @@ def resolver(config, rtvars={}, clivars={}):
 			raise Exception(f'Error: {k} run-time variable not ' \
 					'set by user and no default available.')
 
+	# Update the artifacts so that the destination now points to an absolute
+	# path rather than one that is implictly relative to SHRINKWRAP_PACKAGE.
+	# We can't do this at build-time because we don't know where the package
+	# will be located at run-time.
+	for k in config['artifacts']:
+		v = config['artifacts'][k]
+		v['dst'] = os.path.join(workspace.package, v['dst'])
+
 	# Create a lookup table with all the artifacts in their package
 	# locations, then do substitution to fully resolve the rtvars. An
 	# exception will be thrown if there are any macros that we don't have
 	# values for.
 	lut = {
 		'param': dict(clivars),
-		'artifact': {k: os.path.join(workspace.package, v['dst'])
+		'artifact': {k: v['dst']
 				for k, v in config['artifacts'].items()},
 	}
 	for k in run['rtvars']:
 		v = run['rtvars'][k]
 		v['value'] = _string_substitute(str(v['value']), lut)
-		if v['type'] == 'path':
+		if v['type'] == 'path' and v['value']:
 			v['value'] = os.path.abspath(v['value'])
 
 	# Now create a lookup table with all the rtvars and resolve all the
@@ -602,26 +636,28 @@ def graph(configs):
 	pre.append()
 	pre.append(f'# Exit on error, error on unbound vars and echo commands.')
 	pre.append(f'set -eux')
-	pre.append()
-	pre.append(f'# Define variables.')
-	pre.append(f'BUILD={workspace.build}')
-	pre.append(f'PACKAGE={workspace.package}')
 	pre = pre.commands(False)
 
 	gl1 = Script('Removing old package', preamble=pre)
 	gl1.append(f'# Remove old package.')
 	for config in configs:
-		gl1.append(f'rm -rf $PACKAGE/{config["name"]} > /dev/null 2>&1 || true')
+		gl1.append(f'rm -rf {workspace.package}/{config["fullname"]} > /dev/null 2>&1 || true')
+		gl1.append(f'rm -rf {workspace.package}/{config["name"]} > /dev/null 2>&1 || true')
 	gl1.seal()
 	graph[gl1] = []
 
 	gl2 = Script('Creating directory structure', preamble=pre)
 	gl2.append(f'# Create directory structure.')
 	for config in configs:
-		gl2.append(f'mkdir -p $BUILD/{config["name"]}')
+		dirs = set()
+		for component in config['build'].values():
+			dir = os.path.dirname(component["sourcedir"])
+			if dir not in dirs:
+				gl2.append(f'mkdir -p {dir}')
+				dirs.add(dir)
 		dirs = set()
 		for artifact in config['artifacts'].values():
-			dst = f'$PACKAGE/{artifact["dst"]}'
+			dst = os.path.join(workspace.package, artifact['dst'])
 			dir = os.path.dirname(dst)
 			if dir not in dirs:
 				gl2.append(f'mkdir -p {dir}')
@@ -640,10 +676,11 @@ def graph(configs):
 
 				g = Script('Syncing git repo', config["name"], name, preamble=pre)
 				g.append(f'# Sync git repo for config={config["name"]} component={name}.')
-				g.append(f'pushd $BUILD/{config["name"]}')
+				g.append(f'pushd {os.path.dirname(component["sourcedir"])}')
 
 				for gitlocal, repo in component['repo'].items():
-					gitlocal = os.path.normpath(os.path.join(name, gitlocal))
+					parent = os.path.basename(component["sourcedir"])
+					gitlocal = os.path.normpath(os.path.join(parent, gitlocal))
 					gitremote = repo['remote']
 					gitrev = repo['revision']
 					basedir = os.path.normpath(os.path.join(gitlocal, '..'))
@@ -667,7 +704,7 @@ def graph(configs):
 
 				b = Script('Building', config["name"], name, preamble=pre)
 				b.append(f'# Build for config={config["name"]} component={name}.')
-				b.append(f'pushd $BUILD/{config["name"]}/{name}')
+				b.append(f'pushd {component["sourcedir"]}')
 				for cmd in component['prebuild']:
 					b.append(cmd)
 				for cmd in component['build']:
@@ -684,8 +721,8 @@ def graph(configs):
 		a = Script('Copying artifacts', config["name"], preamble=pre, final=True)
 		a.append(f'# Copy artifacts for config={config["name"]}.')
 		for artifact in config['artifacts'].values():
-			src = f'$BUILD/{artifact["src"]}'
-			dst = f'$PACKAGE/{artifact["dst"]}'
+			src = artifact['src']
+			dst = os.path.join(workspace.package, artifact['dst'])
 			a.append(f'cp {src} {dst}')
 		a.seal()
 		graph[a] = [gl2] + [s for s in build_scripts.values()]
