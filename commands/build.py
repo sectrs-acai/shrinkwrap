@@ -103,11 +103,20 @@ def dispatch(args):
 		# natively on the host or may execute commands in a container,
 		# depending on what the user specified.
 		with runtime.Runtime(args.runtime, args.image) as rt:
-			os.makedirs(workspace.build, exist_ok=True)
-			rt.add_volume(workspace.build)
+			def add_volume(path, levels_up=0):
+				while levels_up:
+					path = os.path.dirname(path)
+					levels_up -= 1
+				os.makedirs(path, exist_ok=True)
+				rt.add_volume(path)
 
-			os.makedirs(workspace.package, exist_ok=True)
-			rt.add_volume(workspace.package)
+			add_volume(workspace.build)
+			add_volume(workspace.package)
+
+			for conf in configs:
+				for comp in conf['build'].values():
+					add_volume(comp['sourcedir'], 1)
+					add_volume(comp['builddir'])
 
 			rt.start()
 

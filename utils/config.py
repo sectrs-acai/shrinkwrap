@@ -449,15 +449,19 @@ def resolveb(config, clivars={}):
 			for i, s in enumerate(desc['postbuild']):
 				desc['postbuild'][i] = _string_substitute(s, lut)
 
-	# Compute the source and build directories for each component.
+	# Compute the source and build directories for each component. If they
+	# are already present, then don't override. This allows users to supply
+	# their own source and build tree locations.
 	for name, desc in config['build'].items():
 		comp_dir = os.path.join(config['name'], name)
-		desc['sourcedir'] = os.path.join(workspace.build,
-						 'source',
-						 comp_dir)
-		desc['builddir'] = os.path.join(workspace.build,
-						'build',
-						comp_dir)
+		if desc['sourcedir'] is None:
+			desc['sourcedir'] = os.path.join(workspace.build,
+							 'source',
+							 comp_dir)
+		if desc['builddir'] is None:
+			desc['builddir'] = os.path.join(workspace.build,
+							'build',
+							comp_dir)
 
 	graph = _resolve_build_graph(config)
 	artifact_map = _resolve_artifact_map(config)
