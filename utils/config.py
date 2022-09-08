@@ -80,6 +80,9 @@ def _config_normalize(config):
 	if 'name' not in config:
 		config['name'] = None
 
+	if 'fullname' not in config:
+		config['fullname'] = None
+
 	if 'description' not in config:
 		config['description'] = None
 
@@ -152,7 +155,7 @@ def _config_sort(config):
 	config['build'] = _build_sort(config['build'])
 	config['run'] = _run_sort(config['run'])
 
-	lut = ['name', 'description', 'layers',
+	lut = ['name', 'fullname', 'description', 'layers',
 			'graph', 'build', 'artifacts', 'run']
 	lut = {k: i for i, k in enumerate(lut)}
 	return dict(sorted(config.items(), key=lambda x: lut[x[0]]))
@@ -325,7 +328,8 @@ def load(filename, overlay=None):
 	# Now that the config is fully merged, we don't need the layers
 	# property. Its also useful to store the name.
 	del config['layers']
-	config['name'] = os.path.basename(filename)
+	config['fullname'] = os.path.basename(filename)
+	config['name'] = os.path.splitext(config['fullname'])[0]
 
 	return _config_sort(config)
 
@@ -399,7 +403,7 @@ def resolveb(config, clivars={}):
 		for name, desc in config['build'].items():
 			locs = {key: {
 				'src': os.path.join(config['name'], name, desc['buildroot'], val),
-				'dst': os.path.join(config['name'] + '_artifacts', os.path.basename(val)),
+				'dst': os.path.join(config['name'], os.path.basename(val)),
 			} for key, val in desc['artifacts'].items()}
 
 			artifact_map.update(locs)

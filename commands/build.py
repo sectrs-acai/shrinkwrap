@@ -115,7 +115,8 @@ def dispatch(args):
 
 		for c in configs:
 			# Dump the config.
-			cfg_name = os.path.join(workspace.package, c['name'])
+			cfg_name = os.path.join(workspace.package,
+						c['fullname'])
 			with open(cfg_name, 'w') as cfg:
 				config.dump(c, cfg)
 
@@ -123,7 +124,7 @@ def dispatch(args):
 			graph = config.graph([c])
 			script = _mk_script(graph)
 			build_name = os.path.join(workspace.package,
-						  c['name'] + '_artifacts',
+						  c['name'],
 						  'build.sh')
 			with open(build_name, 'w') as build:
 				build.write(script)

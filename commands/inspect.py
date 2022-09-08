@@ -54,7 +54,7 @@ def dispatch(args):
 		buf = io.StringIO()
 
 		buf.write(_text_wrap('name',
-				     c['name'],
+				     c['fullname'],
 				     width=width,
 				     indent=indent,
 				     paraspace=1))

@@ -6,9 +6,9 @@ description: >-
   contain the appropriate EFI System Partition (ESP) for UEFI to consume.
 
 layers:
-  - tfa-base
-  - edk2-base
-  - FVP_Base_RevC-2xAEMvA-base
+  - tfa-base.yaml
+  - edk2-base.yaml
+  - FVP_Base_RevC-2xAEMvA-base.yaml
 
 build:
   tfa:
