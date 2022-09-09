@@ -1,3 +1,4 @@
+import subprocess
 import tuxmake.runtime
 
 
@@ -37,6 +38,31 @@ class Runtime:
 		except ValueError:
 			pass
 		return cmd
+
+	def ip_address(self):
+		"""
+		Returns the primary ip address of the runtime.
+		"""
+
+		script = """
+import socket
+s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+s.settimeout(0)
+try:
+	s.connect(('10.254.254.254', 1))
+	ip = s.getsockname()[0]
+except Exception:
+	ip = '127.0.0.1'
+finally:
+	s.close()
+print(ip)
+""".replace('\n', '\\n').replace('\t', '\\t')
+
+		cmd = ['python3', '-c', f'exec("{script}")']
+		res = subprocess.run(self.mkcmd(cmd), text=True, capture_output=True)
+		if res.returncode == 0:
+			return res.stdout.strip()
+		return '127.0.0.1'
 
 	def cleanup(self):
 		if self._rt:
