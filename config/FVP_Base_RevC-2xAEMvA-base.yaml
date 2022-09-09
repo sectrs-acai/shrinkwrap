@@ -22,6 +22,7 @@ run:
 
   params:
     --stat: null
+    -C bp.vis.disable_visualisation: 1
     -C cache_state_modelled: 0
     -C bp.refcounter.non_arch_start_at_default: 1
     -C bp.refcounter.use_real_time: 0
@@ -79,19 +80,19 @@ run:
     bp.terminal_0:
       friendly: term0
       port_regex: 'terminal_0: Listening for serial connection on port (\d+)'
-      interactive: false
+      type: stdout
 
     bp.terminal_1:
       friendly: term1
       port_regex: 'terminal_1: Listening for serial connection on port (\d+)'
-      interactive: false
+      type: stdout
 
     bp.terminal_2:
       friendly: term2
       port_regex: 'terminal_2: Listening for serial connection on port (\d+)'
-      interactive: false
+      type: stdout
 
     bp.terminal_3:
       friendly: term3
       port_regex: 'terminal_3: Listening for serial connection on port (\d+)'
-      interactive: false
+      type: stdout

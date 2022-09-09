@@ -120,15 +120,31 @@ def dispatch(args):
 		# Once all ports have been found, launch the netcat processes
 		# and change the handler so we never get called again.
 		if found_all_ports:
+			wait = False
 			for t in terminals.values():
 				name = t['friendly']
-				interactive = t['interactive']
-				cmd = f'nc localhost {t["port"]}'
+				type = t['type']
+				port = t["port"]
 
-				pm.add(process.Process(cmd,
-						       interactive,
-						       (log.alloc_data(name),),
-						       False))
+				if type in ['stdout', 'stdinout']:
+					interactive = type == 'stdinout'
+					cmd = f'nc localhost {port}'
+					pm.add(process.Process(cmd,
+							interactive,
+							(log.alloc_data(name),),
+							False))
+				if type in ['xterm']:
+					# Nothing to do. The FVP will start this
+					# automatically.
+					pass
+				if type in ['telnet']:
+					wait = True
+					ip = runtime.get().ip_address()
+					print(f'To start {name} terminal, run:')
+					print(f'    telnet {ip} {port}')
+			if wait:
+				print()
+				input("Press Enter to continue...")
 
 			pm.set_handler(log.log)
 

@@ -27,6 +27,6 @@ run:
   terminals:
     bp.terminal_0:
       friendly: tfa+edk2+linux
-      interactive: true
+      type: telnet
     bp.terminal_1:
       friendly: edk2

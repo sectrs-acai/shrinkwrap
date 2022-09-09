@@ -530,8 +530,22 @@ def resolver(config, rtvars={}, clivars={}):
 
 	# Assemble the final runtime command and stuff it into the config.
 	params = _mk_params(run['params'], '=')
-	terms = ' '.join([f'-C {t}.mode=raw' for t in run['terminals']])
-	run['cmd'] = f'{run["name"]} {params} {terms}'
+
+	terms = []
+	for param, terminal in run['terminals'].items():
+		if terminal['type'] in ['stdout', 'stdinout']:
+			terms.append(f'-C {param}.start_telnet=0')
+			terms.append(f'-C {param}.mode=raw')
+		if terminal['type'] in ['xterm']:
+			terms.append(f'-C {param}.start_telnet=1')
+			terms.append(f'-C {param}.mode=telnet')
+		if terminal['type'] in ['telnet']:
+			terms.append(f'-C {param}.start_telnet=0')
+			terms.append(f'-C {param}.mode=telnet')
+	terms = ' '.join(terms)
+
+	if run["name"]:
+		run['cmd'] = ' '.join([run["name"], params, terms])
 
 	return _config_sort(config)
 
