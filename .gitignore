@@ -1,3 +1,5 @@
 __pycache__/
 shrinkwrap/build/
 shrinkwrap/package/
+documentation/_build/
+public/
