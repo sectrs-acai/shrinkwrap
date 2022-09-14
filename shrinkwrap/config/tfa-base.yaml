@@ -31,4 +31,6 @@ build:
 
     artifacts:
       BL1: ${param:builddir}/fvp/release/bl1.bin
+      BL2: ${param:builddir}/fvp/release/bl2.bin
+      BL31: ${param:builddir}/fvp/release/bl31.bin
       FIP: ${param:builddir}/fvp/release/fip.bin
