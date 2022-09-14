@@ -1,0 +1,33 @@
+description: >-
+  Builds the fvp-base-revc device tree from upstream linux kernel and exports
+  the dtb as an artifact called DTB. Optionally, dynamically adds a kernel
+  command line to the chosen node if any params are specified. Uses a slimmed
+  down mirror of the upstream repo to avoid having to sync all of linux.
+
+build:
+  dt:
+    repo:
+      remote: git://git.kernel.org/pub/scm/linux/kernel/git/devicetree/devicetree-rebasing.git
+      revision: master
+
+    prebuild:
+      # This script dynamically adds kernel bootargs to the chosen node within
+      # the device tree before it gets compiled. It uses any defined key=value
+      # pairs from the `params` key. If none are defined (the default) the dts
+      # is compiled without modification.
+      - DTS_IN=${param:sourcedir}/src/arm64/arm/fvp-base-revc.dts
+      - DTS_OUT=${param:sourcedir}/src/arm64/arm/fvp-base-revc_args.dts
+      - if [ -z "${param:join_equal}" ]; then
+      -   cp $$DTS_IN $$DTS_OUT
+      - else
+      -   ESC_PARAMS=$$(printf '%s\n' "${param:join_equal}" | sed -e 's/[\/&]/\\&/g')
+      -   sed "s/chosen {.*};/chosen { bootargs = \"$$ESC_PARAMS\"; };/g" $$DTS_IN > $$DTS_OUT
+      - fi
+
+    build:
+      # This project doesn't support building in a separate build directory.
+      # This means we will always dirty the source tree.
+      - make CPP=$${CROSS_COMPILE}cpp -j${param:jobs} src/arm64/arm/fvp-base-revc_args.dtb
+
+    artifacts:
+      DTB: ${param:sourcedir}/src/arm64/arm/fvp-base-revc_args.dtb
