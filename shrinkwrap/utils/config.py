@@ -69,8 +69,11 @@ def _run_normalize(run):
 	if 'params' not in run:
 		run['params'] = {}
 
-	if 'cmd' not in run:
-		run['cmd'] = None
+	if 'prerun' not in run:
+		run['prerun'] = []
+
+	if 'run' not in run:
+		run['run'] = []
 
 	if 'terminals' not in run:
 		run['terminals'] = {}
@@ -145,7 +148,7 @@ def _run_sort(run):
 	Sort the run section so that the keys are in a canonical order. This
 	improves readability by humans.
 	"""
-	lut = ['name', 'rtvars', 'params', 'cmd', 'terminals']
+	lut = ['name', 'rtvars', 'params', 'prerun', 'run', 'terminals']
 	lut = {k: i for i, k in enumerate(lut)}
 	return dict(sorted(run.items(), key=lambda x: lut[x[0]]))
 
@@ -408,6 +411,9 @@ def resolveb(config, clivars={}):
 				'param': {
 					'sourcedir': desc['sourcedir'],
 					'builddir': desc['builddir'],
+					'packagedir': os.path.join(
+							workspace.package,
+						   	config['name']),
 				},
 			}
 
@@ -431,6 +437,9 @@ def resolveb(config, clivars={}):
 					**clivars,
 					'sourcedir': desc['sourcedir'],
 					'builddir': desc['builddir'],
+					'packagedir': os.path.join(
+							workspace.package,
+						   	config['name']),
 				},
 			}
 
@@ -506,7 +515,11 @@ def resolver(config, rtvars={}, clivars={}):
 	# exception will be thrown if there are any macros that we don't have
 	# values for.
 	lut = {
-		'param': dict(clivars),
+		'param': {
+			**dict(clivars),
+			'packagedir': os.path.join(workspace.package,
+						   config['name']),
+		},
 		'artifact': {k: v['dst']
 				for k, v in config['artifacts'].items()},
 	}
@@ -519,10 +532,8 @@ def resolver(config, rtvars={}, clivars={}):
 	# Now create a lookup table with all the rtvars and resolve all the
 	# parameters. An exception will be thrown if there are any macros that
 	# we don't have values for.
-	lut = {
-		'param': dict(clivars),
-		'rtvar': {k: v['value'] for k, v in run['rtvars'].items()}
-	}
+	lut['rtvar'] = {k: v['value'] for k, v in run['rtvars'].items()}
+
 	for k in run['params']:
 		v = run['params'][k]
 		if v:
@@ -545,7 +556,10 @@ def resolver(config, rtvars={}, clivars={}):
 	terms = ' '.join(terms)
 
 	if run["name"]:
-		run['cmd'] = ' '.join([run["name"], params, terms])
+		run['run'] = [' '.join([run["name"], params, terms])]
+
+	for i, s in enumerate(run['prerun']):
+		run['prerun'][i] = _string_substitute(s, lut)
 
 	return _config_sort(config)
 

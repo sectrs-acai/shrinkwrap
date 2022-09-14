@@ -1,5 +1,6 @@
 import os
 import re
+import tempfile
 import shrinkwrap.utils.config as config
 import shrinkwrap.utils.logger as logger
 import shrinkwrap.utils.process as process
@@ -70,12 +71,13 @@ def dispatch(args):
 	resolveb = config.load(filename, overlay)
 	rtvars_dict = rtvars.parse(args.rtvar)
 	resolver = config.resolver(resolveb, rtvars_dict)
+	cmds = '\n'.join(resolver['run']['prerun'] + resolver['run']['run'])
 
 	# If dry run, just output the FVP command that we would have run. We
 	# don't include the netcat magic to access the fvp terminals.
 	if args.dry_run:
 		print('# Boot FVP.')
-		print(resolver['run']['cmd'])
+		print(cmds)
 		return
 
 	# The FVP and any associated uart terminals are output to our terminal
@@ -157,14 +159,24 @@ def dispatch(args):
 				rt.add_volume(rtvar['value'])
 		rt.start()
 
-		# Create a process manager with 1 process; the fvp. As it boots
-		# _find_term_ports() will add the netcat processes in parallel.
-		# It will exit once all processes have terminated. The fvp will
-		# terminate when its told to `poweroff` and netcat will
-		# terminate when it sees the fvp has gone.
-		pm = process.ProcessManager(_find_term_ports)
-		pm.add(process.Process(resolver['run']['cmd'],
-				       False,
-				       (log.alloc_data('fvp'),),
-				       True))
-		pm.run()
+		# Write the script out to a file in a temp directory, and wrap
+		# the directory name and command to run in a Process. Add the
+		# Process to the ProcessManager. On completion, the caller must
+		# destroy the directory.
+		with tempfile.TemporaryDirectory(dir=workspace.build) as tmpdir:
+			tmpfilename = os.path.join(tmpdir, 'script.sh')
+			with open(tmpfilename, 'w') as tmpfile:
+				tmpfile.write(cmds)
+
+			# Create a process manager with 1 process; the fvp. As
+			# it boots _find_term_ports() will add the netcat
+			# processes in parallel. It will exit once all processes
+			# have terminated. The fvp will terminate when its told
+			# to `poweroff` and netcat will terminate when it sees
+			# the fvp has gone.
+			pm = process.ProcessManager(_find_term_ports)
+			pm.add(process.Process(f'bash {tmpfilename}',
+					False,
+					(log.alloc_data('fvp'),),
+					True))
+			pm.run()
