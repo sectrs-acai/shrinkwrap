@@ -11,29 +11,54 @@ Overview
 Introduction
 ************
 
-Here we expect a brief introduction about the solution as well as the main
-target audience and use cases.
+Shrinkwrap is a tool to simplify the process of building and running firmware on
+Arm Fixed Virtual Platforms (FVP). Users simply invoke the tool to build the
+required config, then pass their own kernel and rootfs to the tool to boot the
+full system on FVP.
 
-*********************
-Solution Architecture
-*********************
+Firmware for Arm platforms is becoming increasingly complex with both more
+firmware components (TF-A, Hafnium, OP-TEE, Trusty, RMM, EDK2, U-Boot, etc) and
+more configuration options, both when building the components and when launching
+the FVP. Shrinkwrap solves this problem by abstracting all of this complexity
+into a set of configurations, which can be composed and extended. The tool reads
+the config and generates appropriate shell commands to build, package and run
+the firmware.
 
-A high-level diagram included with some explanation highlighting the main
-features and deliverables.
+See :ref:`user_guide/quickstart:Quick Start Guide` to get up and running.
+
+************
+Architecture
+************
+
+Shrinkwrap is implemented in Python and has a command line interface similar to
+git, with sub-commands that take options. The Python code parses the supplied
+config(s) to generate shell commands that are executed in a backend runtime. The
+runtime is specified by the user and may be ``null`` (executed natively on the
+user's system), or a container runtime such as ``docker`` or ``podman``. For the
+container runtimes, a standard image is provided with all tools preinstalled.
 
 ********
 Features
 ********
 
-- **Feature A:**
-- **Feature B:**
+- A simple and intuitive command line interface enables:
 
-*********
-Use Cases
-*********
+  - Building all required firmware components for a given configuration
+  - Packaging built firmware components for easy distribution
+  - Configuring and booting the FVP with the packaged firmware components
 
-- **Use Case A:**
-- **Use Case B:**
+- Introspect and use any of supplied the out-of-box configurations
+- Create your own configurations by composing with and extending others
+- Choose from multiple runtime engines (Docker, Podman, native)
+- Ensure Reproducible builds with supplied runtime container images
+- Transparently view the generated bash commands for a given config build or run
+- Parallelize builds to make best use of available resources
+- Acquire source from Git remote or point to existing Git local repo
+- Choose how to redirect each FVP UART terminal I/O:
+
+  - mux to stdout
+  - launch telnet
+  - automatically launch xterm (only in native runtime)
 
 ********************
 Repository Structure
