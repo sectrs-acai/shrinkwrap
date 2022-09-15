@@ -34,6 +34,12 @@ def add_parser(parser, formatter):
 		     configs are provided, all non-partial configs in the config
 		     store are inspected.""")
 
+	cmdp.add_argument('-a', '--all',
+		required=False, default=False, action='store_true',
+		help="""If specified, and no configs were explicitly provided,
+		     lists all standard configs rather than just the concrete
+		     ones.""")
+
 	return cmd_name
 
 
@@ -51,6 +57,9 @@ def dispatch(args):
 
 	descs = []
 	for c in sorted(configs, key=lambda c: c['fullname']):
+		if len(args.configs) == 0 and not args.all and not c['concrete']:
+			continue
+
 		buf = io.StringIO()
 
 		buf.write(_text_wrap('name',
@@ -61,6 +70,12 @@ def dispatch(args):
 		buf.write('\n')
 		buf.write(_text_wrap('description',
 				     c['description'],
+				     width=width,
+				     indent=indent,
+				     paraspace=1))
+		buf.write('\n')
+		buf.write(_text_wrap('concrete',
+				     c['concrete'],
 				     width=width,
 				     indent=indent,
 				     paraspace=1))

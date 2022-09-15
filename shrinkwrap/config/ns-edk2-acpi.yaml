@@ -22,6 +22,8 @@ description: >-
   to telnet and the user will be prompted to run the required telnet command in
   a separate window. This is required due to EDK2's ncurses-like output.
 
+concrete: true
+
 layers:
   - FVP_Base_RevC-2xAEMvA-base.yaml
   - tfa-base.yaml

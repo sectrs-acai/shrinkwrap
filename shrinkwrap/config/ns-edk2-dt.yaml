@@ -11,6 +11,8 @@ description: >-
   tree. By default (if not overriding the rtvar), the upstream kernel device
   tree is used.
 
+concrete: true
+
 layers:
   - ns-edk2-acpi.yaml
   - dt-base.yaml

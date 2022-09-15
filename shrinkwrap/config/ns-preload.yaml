@@ -20,6 +20,8 @@ description: >-
   specified at build time, since the command line is added to the chosen node of
   the default dtb.
 
+concrete: true
+
 layers:
   - FVP_Base_RevC-2xAEMvA-base.yaml
   - tfa-base.yaml

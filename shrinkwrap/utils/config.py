@@ -92,6 +92,9 @@ def _config_normalize(config):
 	if 'description' not in config:
 		config['description'] = None
 
+	if 'concrete' not in config:
+		config['concrete'] = False
+
 	if 'layers' not in config:
 		config['layers'] = []
 
@@ -161,7 +164,7 @@ def _config_sort(config):
 	config['build'] = _build_sort(config['build'])
 	config['run'] = _run_sort(config['run'])
 
-	lut = ['name', 'fullname', 'description', 'layers',
+	lut = ['name', 'fullname', 'description', 'concrete', 'layers',
 			'graph', 'build', 'artifacts', 'run']
 	lut = {k: i for i, k in enumerate(lut)}
 	return dict(sorted(config.items(), key=lambda x: lut[x[0]]))
