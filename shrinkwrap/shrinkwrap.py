@@ -57,10 +57,9 @@ def main():
 	parser.add_argument('-I', '--image',
 		metavar='name',
 		required=False,
-		default='shrinkwrap/base-debian11',
+		default='oss-kernel--docker.artifactory.geo.arm.com/shrinkwrap/base-debian11:latest',
 		help="""If using a container runtime, specifies the name of the
-		     image to use. Defaults to the official shrinkwrap image on
-		     dockerhub.""")
+		     image to use. Defaults to the official shrinkwrap image.""")
 
 	subparsers = parser.add_subparsers(dest='command',
 					   metavar='<command>',
