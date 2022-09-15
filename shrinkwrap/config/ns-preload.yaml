@@ -1,0 +1,78 @@
+%YAML 1.2
+---
+description: >-
+  Best choice for: I just want to run Linux on FVP.
+
+  A simple, non-secure-only configuration where all components are preloaded
+  into memory (TF-A's BL31, DTB and kernel). The system resets directly to BL31.
+  Allows easy specification of a custom command line at build-time (via
+  build.dt.params dictionary) and specification of the device tree, kernel image
+  and rootfs at run-time (see rtvars).
+
+  By default (if not overriding the rtvars), the upstream kernel device tree is
+  used along with a sensible command line that will set up the console for
+  logging and attempt to mount the rootfs image from the FVP's virtio block
+  device. However the default rootfs image is empty, so the kernel will panic
+  when attempting to mount; the user must supply a rootfs if it is required that
+  the kernel completes its boot. No default kernel image is supplied and the
+  config will refuse to run unless it is explicitly specified.  Note: If
+  specifying a custom dtb at runtime, this will also override any command line
+  specified at build time, since the command line is added to the chosen node of
+  the default dtb.
+
+layers:
+  - FVP_Base_RevC-2xAEMvA-base.yaml
+  - tfa-base.yaml
+  - dt-base.yaml
+
+build:
+  tfa:
+    params:
+      RESET_TO_BL31: 1
+      ARM_LINUX_KERNEL_AS_BL33: 1
+      PRELOADED_BL33_BASE: 0x84000000
+      ARM_PRELOADED_DTB_BASE: 0x82000000
+
+  dt:
+    params:
+      console: ttyAMA0
+      earlycon: pl011,0x1c090000
+      root: /dev/vda
+      ip: dhcp
+
+run:
+  rtvars:
+    BL31:
+      type: path
+      value: ${artifact:BL31}
+
+    DTB:
+      type: path
+      value: ${artifact:DTB}
+
+    KERNEL:
+      type: path
+      value: null
+
+    ROOTFS:
+      type: path
+      value: ''
+
+  params:
+    -C cluster0.cpu0.RVBAR: 0x04001000
+    -C cluster0.cpu1.RVBAR: 0x04001000
+    -C cluster0.cpu2.RVBAR: 0x04001000
+    -C cluster0.cpu3.RVBAR: 0x04001000
+    -C cluster1.cpu0.RVBAR: 0x04001000
+    -C cluster1.cpu1.RVBAR: 0x04001000
+    -C cluster1.cpu2.RVBAR: 0x04001000
+    -C cluster1.cpu3.RVBAR: 0x04001000
+    '--data cluster0.cpu0': ${rtvar:BL31}@0x04001000
+    ' --data cluster0.cpu0': ${rtvar:DTB}@0x82000000
+    '  --data cluster0.cpu0': ${rtvar:KERNEL}@0x84000000
+    -C bp.virtioblockdevice.image_path: ${rtvar:ROOTFS}
+
+  terminals:
+    bp.terminal_0:
+      friendly: tfa+linux
+      type: stdinout
