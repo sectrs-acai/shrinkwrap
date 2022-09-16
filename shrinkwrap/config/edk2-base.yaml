@@ -33,8 +33,7 @@ build:
 
     build:
       - make -j${param:jobs} -C acpica
-      # edksetup.sh invokes unbound variables to relax temporarily.
-      - set +u; source edk2/edksetup.sh; set -u
+      - source edk2/edksetup.sh
       - make -j${param:jobs} -C edk2/BaseTools
       - build -n ${param:jobs} -D EDK2_OUT_DIR=${param:builddir} ${param:join_space}
 
