@@ -291,30 +291,34 @@ def _mk_params(params, separator):
 	return ' '.join(pairs)
 
 
-def filename(name):
+def filename(name, rel=os.getcwd()):
 	"""
 	Given a config name, finds the path to the config on disk. If the config
-	name contains a path separator, it is treated as a filesystem path. Else
-	it is first searched for in the current directory, and if not found, it
-	is searched for in the config store.
+	name exists relative to rel, we return that since it is a user config.
+	Else, if the config name exists relative to the config store then we
+	return that. If neither exist, then we return the filepath option, since
+	that will generate the most useful error.
 	"""
-	if os.path.sep in name:
-		return os.path.abspath(name)
-	elif os.path.exists(name):
-		return os.path.abspath(name)
+	fpath = os.path.abspath(os.path.join(rel, name))
+	cpath = os.path.abspath(os.path.join(workspace.config, name))
+
+	if os.path.exists(fpath):
+		return fpath
+	elif os.path.exists(cpath):
+		return cpath
 	else:
-		return os.path.join(workspace.config, name)
+		return fpath
 
 
-def load(filename, overlay=None):
+def load(file_name, overlay=None):
 	"""
 	Load a config from disk and return it as a dictionary. The config is
 	fully normalized, validated and merged.
 	"""
-	def _config_load(filename):
-		with open(filename) as file:
+	def _config_load(file_name):
+		with open(file_name) as file:
 			config = yaml.safe_load(file)
-		config_dir = os.path.dirname(filename)
+		config_dir = os.path.dirname(file_name)
 
 		config = _config_normalize(config)
 		_config_validate(config)
@@ -322,14 +326,14 @@ def load(filename, overlay=None):
 		# Recursively load and merge the layers.
 		master = _config_normalize({})
 		for layer in config['layers']:
-			layer = _config_load(os.path.join(config_dir, layer))
+			layer = _config_load(filename(layer, config_dir))
 			master = _config_merge(master, layer)
 
 		master = _config_merge(master, config)
 
 		return master
 
-	config = _config_load(filename)
+	config = _config_load(file_name)
 
 	if overlay:
 		config = _config_merge(config, overlay)
@@ -337,7 +341,7 @@ def load(filename, overlay=None):
 	# Now that the config is fully merged, we don't need the layers
 	# property. Its also useful to store the name.
 	del config['layers']
-	config['fullname'] = os.path.basename(filename)
+	config['fullname'] = os.path.basename(file_name)
 	config['name'] = os.path.splitext(config['fullname'])[0]
 
 	return _config_sort(config)

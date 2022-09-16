@@ -27,12 +27,11 @@ def add_parser(parser, formatter):
 
 	cmdp.add_argument('configs',
 		metavar='config', nargs='*',
-		help="""0 or more configs to inspect. If a config contains a
-		     path separator, it is treated as a filesystem path. Else it
-		     is first searched for in the current directory, and if not
-		     found, it is searched for in the config store. If no
-		     configs are provided, all non-partial configs in the config
-		     store are inspected.""")
+		help="""0 or more configs to inspect. If a config exists
+		     relative to the current directory that config is used. Else
+		     if a config exists relative to the config store then it is
+		     used. If no configs are provided, all non-partial configs
+		     in the config store are built.""")
 
 	cmdp.add_argument('-a', '--all',
 		required=False, default=False, action='store_true',

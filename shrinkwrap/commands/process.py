@@ -25,10 +25,9 @@ def add_parser(parser, formatter):
 
 	cmdp.add_argument('config',
 		metavar='config',
-		help="""Config to process. If the config contains a path
-		     separator, it is treated as a filesystem path. Else it is
-		     first searched for in the current directory, and if not
-		     found, it is searched for in the config store.""")
+		help="""Config to process. If the config exists relative to the
+		     current directory that config is used. Else if the config
+		     exists relative to the config store then it is used.""")
 
 	cmdp.add_argument('-a', '--action',
 		metavar='action', required=True,
