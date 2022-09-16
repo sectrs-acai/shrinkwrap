@@ -38,6 +38,7 @@ extensions = [
     'sphinx.ext.autosectionlabel',
     'sphinx_rtd_theme',
     'sphinx_copybutton',
+    'sphinx.ext.todo',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -82,6 +83,9 @@ html_theme_options = {
 }
 
 # -- Extension configuration -------------------------------------------------
+
+# Display todos by setting to True
+todo_include_todos = True
 
 # -- Options for autosectionlabel --------------------------------------------
 

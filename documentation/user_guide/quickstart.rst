@@ -7,7 +7,11 @@ Install Shrinkwrap
 ******************
 
 Packages don't yet exist, so currently the only way to install Shrinkwrap is to
-install its dependencies and clone the git repository:
+install its dependencies and clone the git repository.
+
+Shrinkwrap requires at least Python 3.7 (for ordered dicts). If using a version
+older than 3.9, you will also need to install the ``graphlib-backport`` pip
+package.
 
 .. code-block:: shell
 
@@ -189,7 +193,7 @@ provide a value when running the config.
   </p>
 
 Now build the ``ns-preload.yaml`` config. This is the simplest config that
-allows booking a kernel on FVP. (optionally add ``--verbose`` to see all the
+allows booting a kernel on FVP. (optionally add ``--verbose`` to see all the
 output from the component build systems).
 
 .. code-block:: shell
@@ -360,3 +364,91 @@ forwards stdin to the ``tfa+linux`` uart terminal:
 
   </details>
   </p>
+
+************************************
+Use Case: Override Component Version
+************************************
+
+You can change many, many configuration options by overlaying a config on top of
+an existing config. Here we modify the revision of the TF-A component from the
+``master`` branch (the default defined in tfa-base.yaml), to the ``v2.7.0`` tag.
+You could also specify the revision as a SHA or override the remote repo URL,
+etc.
+
+We will use the ``ns-edk2-dt.yaml`` config to spice things up a bit. This loads
+EDK2 on top of TF-A then EDK2 pulls the kernel, dtb and command line from the
+host system using semihosting.
+
+.. warning::
+
+  If you have previously built this config, shrinkwrap will skip syncing the git
+  repos since they will already exist and it doesn't want to trample any user
+  changes. So you will need to force shrinkwrap to re-sync. One approach is to
+  delete the following directories:
+
+  - ``<SHRINKWRAP_BUILD>/source/ns-edk2-dt``
+  - ``<SHRINKWRAP_BUILD>/build/ns-edk2-dt``
+
+Create a file called ``my-overlay.yaml``:
+
+.. code-block:: yaml
+
+  build:
+    tfa:
+      repo:
+        revision: v2.7.0
+
+Optionally, you can view the final, merged config as follows:
+
+.. code-block:: shell
+
+  shrinkwrap --runtime=docker process --action=merge --overlay=my-overlay.yaml ns-edk2-dt.yaml
+
+Now do a build, passing in the overlay:
+
+.. code-block:: shell
+
+  shrinkwrap --runtime=docker build --overlay=my-overlay.yaml ns-edk2-dt.yaml
+
+Finally, boot the config. Here, were are providing a custom kernel command line.
+But you could omit this and a sensible default would be used. Note that because
+EDK2 outputs ncurses-like output, this config starts the appropriate terminal in
+telnet mode and provides the command that you need to enter in a separate
+window. Follow the instructions, then in EDK2, navigate to Boot Manager -> UEFI
+Shell. This will cause the kernel to boot:
+
+.. code-block:: shell
+
+  shrinkwrap --runtime=docker run --rtvar=KERNEL=path/to/Image --rtvar=ROOTFS=path/to/rootfs.img --rtvar="CMDLINE=console=ttyAMA0 earlycon=pl011,0x1c090000 root=/dev/vda ip=dhcp" ns-edk2-dt.yaml
+
+***********************************
+Use Case: Reuse Existing Local Repo
+***********************************
+
+By default, shrinkwrap will sync the git repos for all required components to a
+private location the first time you build a given config. However, sometimes you
+want shrinkwrap to reuse a repo that already exists on your local system. In
+this case, Shrinkwrap will build this source into its own private build tree,
+leaving the source tree unmodified.
+
+.. warning::
+
+  Components support building in a tree separate from the source to differing
+  degrees. For example, TF-A will always build fiptool in the source tree,
+  although it will build all the FW components in the correct build tree. So
+  depending on the component you are sharing source for, you may see some build
+  artifacts appear.
+
+Create a file called ``my-overlay.yaml``:
+
+.. code-block:: yaml
+
+  build:
+    tfa:
+      sourcedir: /path/to/my/tfa/git/repo
+
+Now do a build, passing in the overlay:
+
+.. code-block:: shell
+
+  shrinkwrap --runtime=docker build --overlay=my-overlay.yaml ns-edk2-dt.yaml

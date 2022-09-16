@@ -7,6 +7,40 @@
 Run-Times
 #########
 
+Shrinkwrap uses a "runtime" to execute all of its shell commands and allows the
+user to choose which runtime to use. Both the design and implementation of this
+is borrowed from `Tuxmake <https://tuxmake.org>`_.
+
+Shrinkwrap supports the following set of runtimes:
+
+============ ====
+runtime      description
+============ ====
+null         (default). Shell commands are executed natively on the user's system. The user is responsible for ensuring the the required toolchain, environment variables and any other dependencies are set up.
+docker       Shell commands are executed in a docker container. By default, the official shrinkwrap image will be pulled and used, which contains all dependencies already setup.
+docker-local Like docker, but will only look for the container image on the local system. Will not attempt to pull over the network.
+podman       Like docker, but runs the container using podman.
+podman-local Like docker-local, but runs the container using podman.
+============ ====
+
+.. warning::
+
+  ``podman`` and ``podman-local`` are not well-tested, and are probably broken.
+
+The desired runtime can be specified using the ``--runtime`` option, which is a
+top-level argument (must come before the command):
+
+.. code-block:: shell
+
+  shrinkwrap --runtime=<name> ...
+
+If using a container runtime (anything other than null), a custom image can
+optionally be specified. If omitted, the official shrinkwrap image is used:
+
+.. code-block:: shell
+
+  shrinkwrap --runtime=<name> --image=<name> ...
+
 ***********************************
 Log into Arm Artifactory Repository
 ***********************************
