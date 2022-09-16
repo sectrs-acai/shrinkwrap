@@ -92,7 +92,8 @@ def dispatch(args):
 	"""
 	clivars = {'jobs': args.jobs}
 	configs = config.load_resolveb_all(args.configs, args.overlay, clivars)
-	configs = [c for c in configs if c['concrete']]
+	if len(args.configs) == 0:
+		configs = [c for c in configs if c['concrete']]
 	graph = config.graph(configs)
 
 	if args.dry_run:
