@@ -15,7 +15,7 @@ def add_parser(parser, formatter):
 	"""
 	cmdp = parser.add_parser(cmd_name,
 		formatter_class=formatter,
-		help="""Outputs to stdout info about either all (non-partial)
+		help="""Outputs to stdout info about either all concrete
 		     standard configs or an explicitly specified set of configs.
 		     Info includes name, description and runtime variables with
 		     their default values.""",
@@ -30,7 +30,7 @@ def add_parser(parser, formatter):
 		help="""0 or more configs to inspect. If a config exists
 		     relative to the current directory that config is used. Else
 		     if a config exists relative to the config store then it is
-		     used. If no configs are provided, all non-partial configs
+		     used. If no configs are provided, all concrete configs
 		     in the config store are built.""")
 
 	cmdp.add_argument('-a', '--all',

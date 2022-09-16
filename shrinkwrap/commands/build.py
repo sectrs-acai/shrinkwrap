@@ -25,7 +25,7 @@ def add_parser(parser, formatter):
 	"""
 	cmdp = parser.add_parser(cmd_name,
 		formatter_class=formatter,
-		help="""Builds either all (non-partial) standard configs or an
+		help="""Builds either all concrete standard configs or an
 		     explicitly specified set of configs and packages them ready
 		     to run.""",
 		epilog="""The config store exists at at
@@ -45,7 +45,7 @@ def add_parser(parser, formatter):
 		help="""0 or more configs to build. If a config exists relative
 		     to the current directory that config is used. Else if a
 		     config exists relative to the config store then it is used.
-		     If no configs are provided, all non-partial configs in the
+		     If no configs are provided, all concrete configs in the
 		     config store are built.""")
 
 	cmdp.add_argument('-o', '--overlay',
@@ -58,7 +58,7 @@ def add_parser(parser, formatter):
 		required=False, default=dflt_jobs(), metavar='count', type=int,
 		help="""Maximum number of "high-level" tasks that will be
 		     performed in parallel by Shrinkwrap. Tasks include syncing
-		     git repositories, building componenents and copying
+		     git repositories, building components and copying
 		     artifacts. Default={}""".format(dflt_jobs()))
 
 	cmdp.add_argument('-j', '--jobs',

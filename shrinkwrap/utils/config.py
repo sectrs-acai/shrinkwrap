@@ -574,8 +574,8 @@ def resolver(config, rtvars={}, clivars={}):
 def load_resolveb_all(names, overlayname=None, clivars={}):
 	"""
 	Takes a list of config names and returns a corresponding list of
-	resolved configs. If the input list is None or empty, all non-partial
-	standard configs are loaded and resolved.
+	resolved configs. If the input list is None or empty, all standard
+	configs are loaded and resolved.
 	"""
 	explicit = names is not None and len(names) != 0
 	configs = []
