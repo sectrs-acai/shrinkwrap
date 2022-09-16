@@ -229,7 +229,7 @@ def _string_tokenize(string):
 		lit_start = m.span()[1]
 
 		if m['invalid'] is not None:
-			raise Exception(f"Error: macro at col {lit_end}" \
+			raise Exception(f"Macro at col {lit_end}" \
 					f" in '{string}' is invalid.")
 		if m['escape'] is not None:
 			tokens.append({
@@ -373,7 +373,7 @@ def resolveb(config, clivars={}):
 
 			if len(clash) > 0:
 				a = clash.pop()
-				raise Exception(f"Error: duplicate artifact '{a}' exported by '{exporters[a]}' and '{new[a]}'.")
+				raise Exception(f"Duplicate artifact '{a}' exported by '{exporters[a]}' and '{new[a]}'.")
 
 			exporters.update(new)
 
@@ -387,9 +387,9 @@ def resolveb(config, clivars={}):
 
 			for m in macros:
 				if m['type'] != 'artifact':
-					raise Exception(f"Error: '{name}' uses macro of type '{m['type']}'. Components must only use 'artifact' macros.")
+					raise Exception(f"'{name}' uses macro of type '{m['type']}'. Components must only use 'artifact' macros.")
 				if m['name'] is None:
-					raise Exception(f"Error: '{name}' uses unnamed 'artifact' macro. 'artifact' macros must be named.")
+					raise Exception(f"'{name}' uses unnamed 'artifact' macro. 'artifact' macros must be named.")
 				artifacts.add(m['name'])
 
 			importers[name] = sorted(list(artifacts))
@@ -506,7 +506,7 @@ def resolver(config, rtvars={}, clivars={}):
 			run['rtvars'][k]['value'] = rtvars[k]
 	for k, v in run['rtvars'].items():
 		if v['value'] is None:
-			raise Exception(f'Error: {k} run-time variable not ' \
+			raise Exception(f'{k} run-time variable not ' \
 					'set by user and no default available.')
 
 	# Update the artifacts so that the destination now points to an absolute

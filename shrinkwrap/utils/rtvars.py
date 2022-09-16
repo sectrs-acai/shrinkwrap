@@ -6,6 +6,6 @@ def parse(args):
 			key, value = pair.split('=', maxsplit=1)
 			rtvars[key] = value
 		except ValueError:
-			raise Exception(f'Error: invalid rtvar {pair}')
+			raise Exception(f'Invalid rtvar {pair}')
 
 	return rtvars

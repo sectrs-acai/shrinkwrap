@@ -303,7 +303,7 @@ def _build(graph, tasks, verbose):
 		if retcode:
 			if not verbose:
 				print(''.join(data))
-			raise Exception(f"Error: Failed to execute '{frag}'")
+			raise Exception(f"Failed to execute '{frag}'")
 
 		state = 'Done' if frag.final else 'Waiting...'
 		_update_labels(labels,

@@ -91,5 +91,4 @@ if __name__ == "__main__":
 	except SystemExit:
 		pass
 	except BaseException as e:
-		print()
 		print(f'{e.__class__.__name__}: {e}')
