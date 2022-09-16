@@ -3,7 +3,7 @@ def parse(args):
 
 	for pair in args:
 		try:
-			key, value = pair.split('=')
+			key, value = pair.split('=', maxsplit=1)
 			rtvars[key] = value
 		except ValueError:
 			raise Exception(f'Error: invalid rtvar {pair}')
