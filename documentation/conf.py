@@ -92,7 +92,7 @@ todo_include_todos = True
 # Prefix each section label with the name of the document it is in
 autosectionlabel_prefix_document = True
 # Only generate automatic section labels for document titles
-autosectionlabel_maxdepth = 1
+autosectionlabel_maxdepth = 2
 
 # -- Options for copybutton --------------------------------------------------
 copybutton_prompt_text = r'\$ '

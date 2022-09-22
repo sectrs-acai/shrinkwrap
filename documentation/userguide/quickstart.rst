@@ -9,16 +9,22 @@ Install Shrinkwrap
 Packages don't yet exist, so currently the only way to install Shrinkwrap is to
 install its dependencies and clone the git repository.
 
-Shrinkwrap requires at least Python 3.7 (for ordered dicts). If using a version
-older than 3.9, you will also need to install the ``graphlib-backport`` pip
-package.
+Shrinkwrap requires **at least Python 3.7** (for ordered dicts). Older versions
+may work, but are not tested.
 
 .. code-block:: shell
 
-  sudo apt-get install docker.io netcat-openbsd python3 python3-pip
+  sudo apt-get install docker.io netcat-openbsd python3 python3-pip telnet
   sudo pip3 install termcolor tuxmake
   git clone git@git.gitlab.oss.arm.com:engineering/linux-arm/shrinkwrap.git
   export PATH=$PWD/shrinkwrap/shrinkwrap:$PATH
+
+If using a Python version older than 3.9, you will also need to install the
+``graphlib-backport`` pip package:
+
+.. code-block:: shell
+
+  sudo pip3 install graphlib-backport
 
 Now invoke the tool to view help:
 
@@ -33,18 +39,14 @@ Use Cases
 
 .. note::
 
-  The below commands all use the ``docker`` runtime, which means the docker
-  container image will be automatically downloaded and all commands will be
-  executed in it. This ensures that the required toolchains and other tools are
-  available. The default docker image is stored in Arm's internal Artifactory
-  repository. Before using Shrinkwrap with the ``docker`` or ``podman``
-  runtimes, you must log your local docker install into this repository. See
-  :ref:`userguide/runtimes:Run-Times` for instructions.
+  Before executing the below commands, you must log your local docker install
+  into Arm's Artifactory repository. See :ref:`userguide/runtimes:Log into Arm
+  Artifactory Repository` for instructions.
 
-  Users can choose to run with the ``null`` runtime (which is the default if the
-  ``--runtime`` option is omitted). This will cause all commands to be executed
-  on the native system. Users are responsible for setting up the environment in
-  this case.
+  Alternatively, you can choose to run with the ``null`` runtime (which is the
+  default if the ``--runtime`` option is omitted). This will cause all commands
+  to be executed on the native system. Users are responsible for setting up the
+  environment in this case.
 
 ********************************************
 Use Case: Build & Run ns-preload.yaml Config
