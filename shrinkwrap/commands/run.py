@@ -157,13 +157,14 @@ def dispatch(args):
 		for rtvar in resolver['run']['rtvars'].values():
 			if rtvar['type'] == 'path':
 				rt.add_volume(rtvar['value'])
+		rt.add_volume(workspace.package)
 		rt.start()
 
 		# Write the script out to a file in a temp directory, and wrap
 		# the directory name and command to run in a Process. Add the
 		# Process to the ProcessManager. On completion, the caller must
 		# destroy the directory.
-		with tempfile.TemporaryDirectory(dir=workspace.build) as tmpdir:
+		with tempfile.TemporaryDirectory(dir=workspace.package) as tmpdir:
 			tmpfilename = os.path.join(tmpdir, 'script.sh')
 			with open(tmpfilename, 'w') as tmpfile:
 				tmpfile.write(cmds)
