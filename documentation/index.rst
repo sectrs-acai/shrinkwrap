@@ -15,5 +15,5 @@ Contents
    :maxdepth: 3
 
    overview
-   user_guide/index
+   userguide/index
    license_file_link

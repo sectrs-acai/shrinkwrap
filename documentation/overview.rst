@@ -24,7 +24,7 @@ into a set of configurations, which can be composed and extended. The tool reads
 the config and generates appropriate shell commands to build, package and run
 the firmware.
 
-See :ref:`user_guide/quickstart:Quick Start Guide` to get up and running.
+See :ref:`userguide/quickstart:Quick Start Guide` to get up and running.
 
 ************
 Architecture

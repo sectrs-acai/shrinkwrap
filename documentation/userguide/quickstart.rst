@@ -39,7 +39,7 @@ Use Cases
   available. The default docker image is stored in Arm's internal Artifactory
   repository. Before using Shrinkwrap with the ``docker`` or ``podman``
   runtimes, you must log your local docker install into this repository. See
-  :ref:`user_guide/runtimes:Run-Times` for instructions.
+  :ref:`userguide/runtimes:Run-Times` for instructions.
 
   Users can choose to run with the ``null`` runtime (which is the default if the
   ``--runtime`` option is omitted). This will cause all commands to be executed

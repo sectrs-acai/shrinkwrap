@@ -49,7 +49,7 @@ For each leaf key in the union of the hierachical dictionaries:
 
 You can use the ``process`` command to merge configs and see the resulting
 output to get a better feel for how it works. See
-:ref:`user_guide/commands:Commands`.
+:ref:`userguide/commands:Commands`.
 
 ---------------
 Merging Example
@@ -116,7 +116,7 @@ where:
 
 You can use the ``process`` command to resolve macros and see the resulting
 output to get a better feel for how they work. See
-:ref:`user_guide/commands:Commands`.
+:ref:`userguide/commands:Commands`.
 
 --------------
 Defined Macros
