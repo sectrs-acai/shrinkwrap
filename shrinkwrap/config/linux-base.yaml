@@ -1,0 +1,36 @@
+%YAML 1.2
+---
+description: >-
+  Linux kernel build config. Builds the kernel image and set of modules. Image
+  is exported as the KERNEL artifact, while the modules are exported in a tgz
+  archive as the KMODULES artifact.
+
+  By default the defconfig is built. Users can optionally add commands to the
+  prebuild list to modify the config (e.g. `./scripts/config ...`) or even
+  replace the .config, as required.
+
+build:
+  linux:
+    repo:
+      remote: git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
+      revision: master
+
+    prebuild:
+      - export ARCH=arm64
+      - make -j${param:jobs} O=${param:builddir} defconfig
+
+    build:
+      # Finalize the config.
+      - make -j${param:jobs} O=${param:builddir} olddefconfig
+
+      # Make the kernel image and modules.
+      - make -j${param:jobs} O=${param:builddir} Image modules
+
+      # Package the modules into a tgz archive.
+      - make -j${param:jobs} O=${param:builddir} INSTALL_MOD_PATH=${param:builddir}/modules modules_install
+      - tar -caf ${param:builddir}/modules.tgz -C ${param:builddir}/modules .
+      - rm -rf ${param:builddir}/modules
+
+    artifacts:
+      KERNEL: ${param:builddir}/arch/arm64/boot/Image
+      KMODULES: ${param:builddir}/modules.tgz
