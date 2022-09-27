@@ -14,7 +14,8 @@ def _component_normalize(component, name):
 	if 'repo' not in component:
 		component['repo'] = {}
 
-	if all(type(v) != dict for v in component['repo'].values()):
+	if len(component['repo']) > 0 and \
+		all(type(v) != dict for v in component['repo'].values()):
 		component['repo'] = {'.': component['repo']}
 
 	for repo in component['repo'].values():
@@ -690,7 +691,7 @@ def graph(configs):
 	for config in configs:
 		dirs = set()
 		for component in config['build'].values():
-			dir = os.path.dirname(component["sourcedir"])
+			dir = component["sourcedir"]
 			if dir not in dirs:
 				gl2.append(f'mkdir -p {dir}')
 				dirs.add(dir)
