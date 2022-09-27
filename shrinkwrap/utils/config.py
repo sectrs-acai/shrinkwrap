@@ -537,6 +537,7 @@ def resolver(config, rtvars={}, clivars={}):
 		v = run['rtvars'][k]
 		v['value'] = _string_substitute(str(v['value']), lut)
 		if v['type'] == 'path' and v['value']:
+			v['value'] = os.path.expanduser(v['value'])
 			v['value'] = os.path.abspath(v['value'])
 
 	# Now create a lookup table with all the rtvars and resolve all the
