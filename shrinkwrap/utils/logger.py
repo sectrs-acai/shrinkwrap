@@ -1,7 +1,9 @@
 import sys
 from collections import namedtuple
+import re
 termcolor = None
 
+_ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
 _colors = ['blue', 'cyan', 'green', 'yellow', 'magenta', 'grey', 'red']
 Data = namedtuple("Data", "tag color")
 
@@ -37,6 +39,12 @@ class Logger:
 		terminals) to the terminal. Text is colored and a tag is added
 		on the left to identify the originating process.
 		"""
+		# Remove any ansi escape sequences since we are just outputting
+		# text to stdout.
+		data = _ansi_escape.sub('', data)
+		if len(data) == 0:
+			return
+
 		tag = proc.data[0].tag
 		color = proc.data[0].color
 
