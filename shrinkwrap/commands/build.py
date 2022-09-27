@@ -81,6 +81,10 @@ def add_parser(parser, formatter):
 		     commands that would have been executed are output to stdout
 		     as a bash script.""")
 
+	cmdp.add_argument('-c', '--no-color',
+		required=False, default=False, action='store_true',
+		help="""If specified, logs will not be colorized.""")
+
 	return cmd_name
 
 
@@ -121,7 +125,10 @@ def dispatch(args):
 
 			rt.start()
 
-			_build(graph, args.tasks, args.verbose)
+			_build(graph,
+			       args.tasks,
+			       args.verbose,
+			       not args.no_color)
 
 		for c in configs:
 			# Dump the config.
@@ -254,13 +261,13 @@ def _run_script(pm, data, script):
 			       True))
 
 
-def _build(graph, tasks, verbose):
+def _build(graph, tasks, verbose, colorize):
 	labels, mask = _mk_labels(graph)
 	lc = _mk_label_controller(labels, not verbose)
 
 	queue = []
 	active = 0
-	log = logger.Logger(20)
+	log = logger.Logger(20, colorize)
 	ts = graphlib.TopologicalSorter(graph)
 
 	def _pump(pm):

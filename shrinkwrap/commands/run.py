@@ -52,6 +52,10 @@ def add_parser(parser, formatter):
 		     executed. Instead the set of commands that would have been
 		     executed are output to stdout.""")
 
+	cmdp.add_argument('-c', '--no-color',
+		required=False, default=False, action='store_true',
+		help="""If specified, logs will not be colorized.""")
+
 	return cmd_name
 
 
@@ -92,7 +96,7 @@ def dispatch(args):
 		if len(t['friendly']) > name_field:
 			name_field = min(len(t['friendly']), max_name_field)
 
-	log = logger.Logger(name_field)
+	log = logger.Logger(name_field, not args.no_color)
 
 	def _find_term_ports(pm, proc, data):
 		"""

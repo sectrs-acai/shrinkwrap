@@ -1,18 +1,23 @@
 import sys
-import termcolor
 from collections import namedtuple
+termcolor = None
 
-
-_colors = ['cyan', 'blue', 'green', 'yellow', 'magenta', 'grey', 'red']
+_colors = ['blue', 'cyan', 'green', 'yellow', 'magenta', 'grey', 'red']
 Data = namedtuple("Data", "tag color")
 
 
 class Logger:
-	def __init__(self, tag_size):
+	def __init__(self, tag_size, colorize):
 		self._tag_size = tag_size
+		self._colorize = colorize
 		self._color_next = 0
 		self._prev_tag = None
 		self._prev_char = '\n'
+
+		if self._colorize:
+			global termcolor
+			import termcolor as tc
+			termcolor = tc
 
 	def alloc_data(self, tag):
 		"""
@@ -50,15 +55,20 @@ class Logger:
 		# newline and add a tag for the new owner.
 		if self._prev_char != '\n':
 			if self._prev_tag == tag:
-				termcolor.cprint(f'{lines[0]}', color, end='')
+				self.print(f'{lines[0]}', color, end='')
 				start = 1
 			else:
 				print(f'\n', end='')
 
 		for line in lines[start:]:
-			termcolor.cprint(f'[ {tag} ] {line}', color, end='')
+			self.print(f'[ {tag} ] {line}', color, end='')
 
 		self._prev_tag = tag
 		self._prev_char = lines[-1][-1]
 
 		sys.stdout.flush()
+
+	def print(self, text, color=None, on_color=None, attrs=None, **kwargs):
+		if self._colorize:
+			text = termcolor.colored(text, color, on_color, attrs)
+		print(text, **kwargs)
