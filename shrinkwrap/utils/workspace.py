@@ -1,10 +1,14 @@
 import os
 
-def _get_loc(var, default):
-	root = os.path.dirname(os.path.dirname(__file__))
-	path = os.environ.get(var, os.path.join(root, default))
-	return os.path.abspath(path)
+_code_root = os.path.dirname(os.path.dirname(__file__))
+_data_root = os.path.expanduser('~/.shrinkwrap')
 
-config = _get_loc('SHRINKWRAP_CONFIG', 'config')
-build = _get_loc('SHRINKWRAP_BUILD', 'build')
-package = _get_loc('SHRINKWRAP_PACKAGE', 'package')
+def _get_loc(var, default):
+	path = os.environ.get(var, default)
+	path = os.path.abspath(path)
+	os.makedirs(path, exist_ok=True)
+	return path
+
+config = _get_loc('SHRINKWRAP_CONFIG', os.path.join(_code_root, 'config'))
+build = _get_loc('SHRINKWRAP_BUILD', os.path.join(_data_root, 'build'))
+package = _get_loc('SHRINKWRAP_PACKAGE', os.path.join(_data_root, 'package'))
