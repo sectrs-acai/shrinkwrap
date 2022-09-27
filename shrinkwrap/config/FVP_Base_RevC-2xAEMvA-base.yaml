@@ -74,6 +74,7 @@ run:
     -C bp.hostbridge.userNetPorts: ${rtvar:LOCAL_NET_PORT}=22
     -C bp.secureflashloader.fname: ${rtvar:BL1}
     -C bp.flashloader0.fname: ${rtvar:FIP}
+    --plugin: $$(which ScalableVectorExtension.so)
 
   terminals:
     bp.terminal_0:
