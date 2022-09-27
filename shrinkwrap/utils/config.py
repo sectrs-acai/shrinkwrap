@@ -422,6 +422,7 @@ def resolveb(config, clivars={}):
 					'packagedir': os.path.join(
 							workspace.package,
 						   	config['name']),
+					'configdir': workspace.config,
 				},
 			}
 
@@ -448,6 +449,7 @@ def resolveb(config, clivars={}):
 					'packagedir': os.path.join(
 							workspace.package,
 						   	config['name']),
+					'configdir': workspace.config,
 				},
 			}
 

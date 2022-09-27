@@ -127,6 +127,7 @@ macro                   scope                                                   
 ======================= ================================================================== ====
 ``${param:sourcedir}``  build.<component>.{params, prebuild, build, postbuild, artifacts}  Directory in which the component's source code is located.
 ``${param:builddir}``   build.<component>.{params, prebuild, build, postbuild, artifacts}  Directory in which the component should be built, if the component's build system supports separation of source and build trees.
+``${param:configdir}``  build.<component>.{params, prebuild, build, postbuild, artifacts}  Directory containing the config store.
 ``${param:packagedir}`` build.<component>.{params, prebuild, build, postbuild, artifacts}  Directory in which all artifacts from the config build are packaged to and accessed from during run.
 ``${param:packagedir}`` run.{params, rtvars, prerun}                                       Directory in which all artifacts from the config build are packaged to and accessed from during run.
 ``${param:jobs}``       build.<component>.{params, prebuild, build, postbuild}             Maximum number of low level parallel jobs specified on the command line. To be passed to (e.g.) make as ``-j${param:jobs}``.
