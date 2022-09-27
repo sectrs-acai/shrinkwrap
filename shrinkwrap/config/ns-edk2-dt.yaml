@@ -26,7 +26,7 @@ run:
   prerun:
     # Override what the base layer did so that dtb=<DTB> gets added to the
     # command line. See ns-edk2-acpi.yaml for rationale on approach.
-    - cp ${rtvar:DTB} ${param:packagedir}
+    - cp ${rtvar:DTB} ${param:packagedir} &> /dev/null
     - cat <<EOF > ${param:packagedir}/startup.nsh
     - $$(basename ${rtvar:KERNEL}) dtb=$$(basename ${rtvar:DTB}) ${rtvar:CMDLINE}
     - EOF
