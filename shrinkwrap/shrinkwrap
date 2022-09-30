@@ -1,4 +1,6 @@
 #!/bin/bash
+# Copyright (c) 2022, Arm Limited.
+# SPDX-License-Identifier: MIT
 
 realfile="$(readlink -f "$0")"
 realdir="$(dirname "$realfile")"

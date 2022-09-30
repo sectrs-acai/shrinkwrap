@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# Copyright (c) 2022, Arm Limited.
+# SPDX-License-Identifier: MIT
 
 
 # Fixup PythonPath to avoid confusion between (this) module and package.

@@ -1,3 +1,6 @@
+# Copyright (c) 2022, Arm Limited.
+# SPDX-License-Identifier: MIT
+
 import os
 
 _code_root = os.path.dirname(os.path.dirname(__file__))

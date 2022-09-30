@@ -1,3 +1,6 @@
+# Copyright (c) 2022, Arm Limited.
+# SPDX-License-Identifier: MIT
+
 import os
 import shrinkwrap.utils.config as config
 import shrinkwrap.utils.rtvars as rtvars
