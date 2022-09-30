@@ -106,13 +106,14 @@ provide a value when running the config.
                        supplied and the config will refuse to run unless it is
                        explicitly specified.
 
-                       Note that the config will boot to the EDK2 main screen and
-                       the user must navigate to Boot Manager -> UEFI Shell. Then
-                       hit enter to execute startup.nsh, which will boot the
-                       kernel as specified. The main UART console is redirected to
-                       telnet and the user will be prompted to run the required
-                       telnet command in a separate window. This is required due
-                       to EDK2's ncurses-like output.
+                       Note that by default, a pre-canned flash image is loaded
+                       into the model, which contains UEFI variables directing
+                       EDK2 to boot to the shell. This will cause startup.nsh to
+                       be executed and will start the kernel boot. This way
+                       everything is automatic. By default, all EDK2 output is
+                       muxed to stdout. If you prefer booting UEFI to its UI,
+                       override the EDK2FLASH rtvar with an empty string and
+                       override terminals.'bp.terminal_0'.type to 'telnet'.
 
   concrete:            True
 
@@ -124,6 +125,7 @@ provide a value when running the config.
                                                root=/dev/vda ip=dhcp
                        KERNEL:                 None
                        ROOTFS:
+                       EDK2FLASH:              ${artifact:EDK2FLASH}
 
   --------------------------------------------------------------------------------
 
@@ -150,6 +152,7 @@ provide a value when running the config.
                                                root=/dev/vda ip=dhcp
                        KERNEL:                 None
                        ROOTFS:
+                       EDK2FLASH:              ${artifact:EDK2FLASH}
                        DTB:                    ${artifact:DTB}
 
   --------------------------------------------------------------------------------
@@ -413,11 +416,7 @@ Now do a build, passing in the overlay:
   shrinkwrap --runtime=docker build --overlay=my-overlay.yaml ns-edk2-dt.yaml
 
 Finally, boot the config. Here, were are providing a custom kernel command line.
-But you could omit this and a sensible default would be used. Note that because
-EDK2 outputs ncurses-like output, this config starts the appropriate terminal in
-telnet mode and provides the command that you need to enter in a separate
-window. Follow the instructions, then in EDK2, navigate to Boot Manager -> UEFI
-Shell. This will cause the kernel to boot:
+But you could omit the command line and a sensible default would be used.
 
 .. code-block:: shell
 
