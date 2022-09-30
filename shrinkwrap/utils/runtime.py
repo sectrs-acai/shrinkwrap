@@ -32,12 +32,7 @@ class Runtime:
 		self._rt.add_volume(src, dst)
 
 	def mkcmd(self, cmd, interactive=False):
-		cmd = self._rt.get_command_line(cmd, interactive, False)
-		try:
-			cmd.remove('--tty')
-		except ValueError:
-			pass
-		return cmd
+		return self._rt.get_command_line(cmd, interactive, False)
 
 	def ip_address(self):
 		"""

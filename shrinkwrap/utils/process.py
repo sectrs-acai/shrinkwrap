@@ -1,9 +1,13 @@
 import fcntl
+import io
 import os
+import pty
 import shlex
 import selectors
 import subprocess
+import sys
 import shrinkwrap.utils.runtime as runtime
+import shrinkwrap.utils.tty as tty
 
 
 class Process:
@@ -16,6 +20,8 @@ class Process:
 		self.data = data
 		self.run_to_end = run_to_end
 		self._popen = None
+		self._stdout = None
+		self._stdin = None
 
 
 class ProcessManager:
@@ -37,34 +43,27 @@ class ProcessManager:
 	def add(self, process):
 		self._procs.append(process)
 		if self._sel:
-			self._activate(process)
+			self._proc_activate(process)
 
 	def run(self):
 		try:
 			self._sel = selectors.DefaultSelector()
 			self._active = 0
 
+			self._stdin_activate()
+
 			for proc in self._procs:
-				self._activate(proc)
+				self._proc_activate(proc)
 
 			while self._active > 0:
 				for key, mask in self._sel.select():
-					proc = key.data
-					data = key.fileobj.read()
-
-					if data == '':
-						self._deactivate(proc)
-					else:
-						if self._handler:
-							self._handler(self,
-								      proc,
-								      data)
+					handler = key.data[0]
+					handler(key, mask)
 		finally:
 			for proc in self._procs:
-				try:
-					self._deactivate(proc, force=True)
-				except:
-					pass
+				self._proc_deactivate(proc, force=True)
+
+			self._stdin_deactivate()
 
 			self._sel.close()
 			self._sel = None
@@ -74,29 +73,53 @@ class ProcessManager:
 		fcntl.fcntl(fileobj, fcntl.F_SETFL, fl | os.O_NONBLOCK)
 		self._sel.register(fileobj, selectors.EVENT_READ, data)
 
-	def _activate(self, proc):
-		stdin=None if proc.interactive else subprocess.DEVNULL
+	def _proc_handle(self, key, mask):
+		proc = key.data[1]
+		data = key.fileobj.read()
 
-		proc._popen = subprocess.Popen(runtime.mkcmd(proc.args,
-							     proc.interactive),
-					       stdin=stdin,
-					       stdout=subprocess.PIPE,
-					       stderr=subprocess.STDOUT,
-					       text=True)
+		if data == '':
+			self._proc_deactivate(proc)
+		else:
+			if self._handler:
+				self._handler(self, proc, data)
 
-		self._register(proc._popen.stdout, proc)
+	def _proc_activate(self, proc):
+		cmd = runtime.mkcmd(proc.args, proc.interactive)
+
+		if proc.interactive:
+			master, slave = pty.openpty()
+
+			proc._popen = subprocess.Popen(cmd,
+						       stdin=slave,
+						       stdout=slave,
+						       stderr=slave)
+
+			proc._stdin = io.open(master, 'wb', buffering=0)
+			proc._stdout = io.open(master, 'rb', -1, closefd=False)
+			proc._stdout = io.TextIOWrapper(proc._stdout)
+		else:
+			proc._popen = subprocess.Popen(cmd,
+						       stdin=subprocess.DEVNULL,
+						       stdout=subprocess.PIPE,
+						       stderr=subprocess.STDOUT,
+						       text=True)
+
+			proc._stdin = None
+			proc._stdout = proc._popen.stdout
+
+		self._register(proc._stdout, (self._proc_handle, proc))
 
 		if proc.run_to_end:
 			self._active += 1
 
-	def _deactivate(self, proc, force=False):
+	def _proc_deactivate(self, proc, force=False):
 		if not proc._popen:
 			return
 
 		if proc.run_to_end:
 			self._active -= 1
 
-		self._sel.unregister(proc._popen.stdout)
+		self._sel.unregister(proc._stdout)
 
 		proc._popen.kill()
 		try:
@@ -107,5 +130,49 @@ class ProcessManager:
 		retcode = None if force else proc._popen.poll()
 		proc._popen = None
 
+		if proc._stdin:
+			proc._stdin.close()
+			proc._stdin = None
+
+		if proc._stdout:
+			proc._stdout.close()
+			proc._stdout = None
+
 		if self._terminate_handler:
-			self._terminate_handler(self, proc, retcode)
+			try:
+				self._terminate_handler(self, proc, retcode)
+			except:
+				pass
+
+	def _stdin_handle(self, key, mask):
+		data = key.fileobj.read()
+		for proc in self._procs:
+			if proc._stdin:
+				proc._stdin.write(data)
+
+	def _stdin_activate(self):
+		# Replace stdin with unbuffered binary stream so we can pass
+		# input to the ptys without any modification.
+		self._stdin_orig = sys.stdin
+		sys.stdin = io.open(self._stdin_orig.fileno(),
+				    'rb',
+				    buffering=0,
+				    closefd=False)
+
+		# Set the terminal to raw input mode.
+		self._tty_orig = tty.configure(sys.stdin)
+
+		# Register stdin so we get notified when there is data.
+		self._register(sys.stdin, (self._stdin_handle,))
+
+	def _stdin_deactivate(self):
+		# Unregister for notifications.
+		self._sel.unregister(sys.stdin)
+
+		# Restore terminal mode.
+		tty.restore(sys.stdin, self._tty_orig)
+
+		# Restore stdin to being buffered text.
+		sys.stdin.close()
+		sys.stdin = self._stdin_orig
+		self._stdin_orig = None

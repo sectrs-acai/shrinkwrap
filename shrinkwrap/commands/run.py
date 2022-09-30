@@ -93,10 +93,30 @@ def dispatch(args):
 	terminals = dict(sorted(terminals.items()))
 	for t in terminals.values():
 		t['port'] = None
+		t['strip'] = False
 		if len(t['friendly']) > name_field:
 			name_field = min(len(t['friendly']), max_name_field)
 
 	log = logger.Logger(name_field, not args.no_color)
+
+	def _strip_telnet_header(pm, proc, data):
+		"""
+		For any stdinout terminals (which use telnet), strip the first
+		few lines of output, which is output by telnet. This is
+		confusing for users since telnet is an implementation detail.
+		"""
+		match = "Escape character is '^]'.\n"
+		pdata = proc.data
+
+		for line in data.splitlines(keepends=True):
+			if len(pdata) >= 2 and terminals[pdata[1]]['strip']:
+				if line == match:
+					terminals[pdata[1]]['strip'] = False
+					if all([not t['strip'] \
+						for t in terminals.values()]):
+						pm.set_handler(log.log)
+			else:
+				log.log(pm, proc, line)
 
 	def _find_term_ports(pm, proc, data):
 		"""
@@ -127,18 +147,26 @@ def dispatch(args):
 		# and change the handler so we never get called again.
 		if found_all_ports:
 			wait = False
-			for t in terminals.values():
+			strip = False
+			for k, t in terminals.items():
 				name = t['friendly']
 				type = t['type']
 				port = t["port"]
 
-				if type in ['stdout', 'stdinout']:
-					interactive = type == 'stdinout'
+				if type in ['stdout']:
 					cmd = f'nc localhost {port}'
 					pm.add(process.Process(cmd,
-							interactive,
-							(log.alloc_data(name),),
+							False,
+							(log.alloc_data(name), k),
 							False))
+				if type in ['stdinout']:
+					cmd = f'telnet localhost {port}'
+					pm.add(process.Process(cmd,
+							True,
+							(log.alloc_data(name), k),
+							False))
+					t['strip'] = True
+					strip = True
 				if type in ['xterm']:
 					# Nothing to do. The FVP will start this
 					# automatically.
@@ -152,7 +180,10 @@ def dispatch(args):
 				print()
 				input("Press Enter to continue...")
 
-			pm.set_handler(log.log)
+			if strip:
+				pm.set_handler(_strip_telnet_header)
+			else:
+				pm.set_handler(log.log)
 
 	# Run under a runtime environment, which may just run commands natively
 	# on the host or may execute commands in a container, depending on what
@@ -184,4 +215,10 @@ def dispatch(args):
 					False,
 					(log.alloc_data('fvp'),),
 					True))
+
+			print()
+			print("Press '^]' to quit shrinkwrap.")
+			print("All other keys are passed through.")
+			print()
+
 			pm.run()

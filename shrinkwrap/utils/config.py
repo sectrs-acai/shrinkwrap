@@ -555,13 +555,13 @@ def resolver(config, rtvars={}, clivars={}):
 
 	terms = []
 	for param, terminal in run['terminals'].items():
-		if terminal['type'] in ['stdout', 'stdinout']:
+		if terminal['type'] in ['stdout']:
 			terms.append(f'-C {param}.start_telnet=0')
 			terms.append(f'-C {param}.mode=raw')
 		if terminal['type'] in ['xterm']:
 			terms.append(f'-C {param}.start_telnet=1')
 			terms.append(f'-C {param}.mode=telnet')
-		if terminal['type'] in ['telnet']:
+		if terminal['type'] in ['telnet', 'stdinout']:
 			terms.append(f'-C {param}.start_telnet=0')
 			terms.append(f'-C {param}.mode=telnet')
 	terms = ' '.join(terms)
