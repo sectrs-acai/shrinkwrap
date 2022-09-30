@@ -50,6 +50,12 @@ repository. shrinkwrap will look here for the default image, but will fail
 unless you have previously logged your local docker instance into the
 repository. This is a one-time operation.
 
+.. note::
+
+  Only Arm employees are able to access this repository. If you are not an Arm
+  employee, you will need to build the image locally on your system. (See
+  below).
+
 First, create an **identity token** using the Artifactory UI:
 
 - Goto https://artifactory.geo.arm.com
@@ -67,3 +73,30 @@ Now perform the login on your local system:
   docker login -u <arm email address> -p <reference token> oss-kernel--docker.artifactory.geo.arm.com
 
 You are now logged in and able to pull shrinkwrap images.
+
+*****************************
+Build Container Image Locally
+*****************************
+
+If you have a need to build the shrinkwrap container image on your local system,
+you can do it as follows:
+
+.. code-block:: shell
+
+  cd docker
+  ./build.sh
+
+This will build an image called
+``oss-kernel--docker.artifactory.geo.arm.com/shrinkwrap/base-debian11-<ARCH>``
+with the tag ``local``. To use the locally built image, call shrinkwrap as
+follows if running on an x86_64 system:
+
+.. code-block:: shell
+
+  shrinkwrap --runtime=<name> --image=oss-kernel--docker.artifactory.geo.arm.com/shrinkwrap/base-debian11-x86_64:local ...
+
+Or like this if running on an aarch64 system:
+
+.. code-block:: shell
+
+  shrinkwrap --runtime=<name> --image=oss-kernel--docker.artifactory.geo.arm.com/shrinkwrap/base-debian11-aarch64:local ...

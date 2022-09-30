@@ -4,7 +4,7 @@ description: >-
   Arm Architecture Envelope Model FVP configured with 8 CPUs across 2 clusters
   (2x4) and 2GB DRAM.
 
-  TODO: Validate this config. It is based on what's being used for Newmore STP.
+  TODO: Validate this config.
 
 run:
   name: FVP_Base_RevC-2xAEMvA

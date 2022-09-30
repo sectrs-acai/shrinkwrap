@@ -71,21 +71,6 @@ provide a value when running the config.
 
 .. code-block:: none
 
-  name:                cca.yaml
-
-  description:         Brings together TF-A, RMM, Hafnium and a set of simple
-                       secure partitions to demonstrate Arm CCA running on FVP.
-
-  concrete:            True
-
-  run-time variables:  LOCAL_NET_PORT:         8022
-                       BL1:                    ${artifact:BL1}
-                       FIP:                    ${artifact:FIP}
-                       ROOTFS:                 None
-                       KERNEL:                 None
-
-  --------------------------------------------------------------------------------
-
   name:                ns-edk2-acpi.yaml
 
   description:         Best choice for: I want to run Linux on FVP, booting with
