@@ -37,11 +37,11 @@ def add_parser(parser, formatter):
 		     includes all FW binaries, a manifest and a build.sh script
 		     containing all the commands that were executed per config.
 		     Any pre-existing config package directory is first deleted.
-		     <SHRINKWRAP_CONFIG>, <SHRINKWRAP_BUILD> and
-		     <SHRINKWRAP_PACKAGE> default to 'config', 'build' and
-		     'package' directories within the directory containing the
-		     shrinkwrap program, but the user can override them by
-		     setting the environment variables.""")
+		     <SHRINKWRAP_CONFIG> defaults to the 'config' directory
+		     within the directory containing the shrinkwrap program.
+		     <SHRINKWRAP_BUILD> and <SHRINKWRAP_PACKAGE> default to
+		     '~/.shrinkwrap/build' and '~/.shrinkwrap/package'. The user
+		     can override them by setting the environment variables.""")
 
 	cmdp.add_argument('configs',
 		metavar='config', nargs='*',

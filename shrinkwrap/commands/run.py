@@ -25,9 +25,8 @@ def add_parser(parser, formatter):
 		formatter_class=formatter,
 		help="""Boot and run the FVP for the specified config.""",
 		epilog="""FW is accessed from <SHRINKWRAP_PACKAGE>.
-		     <SHRINKWRAP_PACKAGE> defaults to 'package' directory within
-		     the directory containing the shrinkwrap program, but the
-		     user can override it by setting the environment
+		     <SHRINKWRAP_PACKAGE> defaults to '~/.shrinkwrap/package',
+		     but the user can override it by setting the environment
 		     variable.""")
 
 	cmdp.add_argument('config',
