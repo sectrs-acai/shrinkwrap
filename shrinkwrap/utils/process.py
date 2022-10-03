@@ -64,7 +64,10 @@ class ProcessManager:
 					handler(key, mask)
 		finally:
 			for proc in self._procs:
-				self._proc_deactivate(proc, force=True)
+				try:
+					self._proc_deactivate(proc, force=True)
+				except:
+					pass
 
 			self._stdin_deactivate()
 
@@ -142,10 +145,7 @@ class ProcessManager:
 			proc._stdout = None
 
 		if self._terminate_handler:
-			try:
-				self._terminate_handler(self, proc, retcode)
-			except:
-				pass
+			self._terminate_handler(self, proc, retcode)
 
 	def _stdin_handle(self, key, mask):
 		data = key.fileobj.read()
