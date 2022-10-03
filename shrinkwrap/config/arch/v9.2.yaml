@@ -1,0 +1,28 @@
+# Copyright (c) 2022, Arm Limited.
+# SPDX-License-Identifier: MIT
+
+%YAML 1.2
+---
+description: >-
+  Implements all mandatory requirements and features as well as a sensible
+  selection of optional ones for the Armv9.2 architecture extension within the
+  Base_RevC-2xAEMvA FVP. Intended for use as an overlay to
+  FVP_Base_RevC-2xAEMvA-base.yaml.
+
+layers:
+  - arch/v8.7.yaml
+  - arch/v9.1.yaml
+
+build:
+  tfa:
+    params:
+      ENABLE_SME_FOR_NS: 1
+      ENABLE_SME_FOR_SWD: 1
+
+run:
+  params:
+    -C cluster0.has_arm_v9-2: 1
+    -C cluster1.has_arm_v9-2: 1
+    -C cluster0.has_brbe: 1                                           # If true, implements branch record buffer extension (FEAT_BRBE).
+    -C cluster1.has_brbe: 1
+    -C SVE.ScalableVectorExtension.has_sme: 1                         # Whether SME is implemented

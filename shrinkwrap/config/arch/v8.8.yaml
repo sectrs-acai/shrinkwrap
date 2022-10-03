@@ -1,0 +1,24 @@
+# Copyright (c) 2022, Arm Limited.
+# SPDX-License-Identifier: MIT
+
+%YAML 1.2
+---
+description: >-
+  Implements all mandatory requirements and features as well as a sensible
+  selection of optional ones for the Armv8.8 architecture extension within the
+  Base_RevC-2xAEMvA FVP. Intended for use as an overlay to
+  FVP_Base_RevC-2xAEMvA-base.yaml.
+
+layers:
+  - arch/v8.7.yaml
+
+run:
+  params:
+    -C cluster0.has_arm_v8-8: 1
+    -C cluster1.has_arm_v8-8: 1
+    -C cluster0.has_const_pac: 1                                      # Feature for singular selection of PAC field (FEAT_CONSTPACFIELD). 1:feature is implemented if Armv8.8 is enabled.
+    -C cluster1.has_const_pac: 1
+    -C cluster0.has_hpmn0: 1                                          # Allow hypervisor to set MDCR_EL2.HPMN to 0 (FEAT_HPMN0). 1:feature is implemented if Armv8.8 is enabled.
+    -C cluster1.has_hpmn0: 1
+    -C cluster0.pmb_idr_external_abort: 1                             # Describes how the PE manages External aborts on writes made by the Statistical Profiling Extension to the Profiling Buffer. (From Armv8.8 and Armv9.3, the value 0 is not permitted) 1: External abort is ignored.
+    -C cluster1.pmb_idr_external_abort: 1

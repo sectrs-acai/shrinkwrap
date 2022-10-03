@@ -1,0 +1,22 @@
+# Copyright (c) 2022, Arm Limited.
+# SPDX-License-Identifier: MIT
+
+%YAML 1.2
+---
+description: >-
+  Implements all mandatory requirements and features as well as a sensible
+  selection of optional ones for the Armv9.3 architecture extension within the
+  Base_RevC-2xAEMvA FVP. Intended for use as an overlay to
+  FVP_Base_RevC-2xAEMvA-base.yaml.
+
+layers:
+  - arch/v8.8.yaml
+  - arch/v9.2.yaml
+
+run:
+  params:
+    -C cluster0.has_arm_v9-3: 1
+    -C cluster1.has_arm_v9-3: 1
+    -C cluster0.has_brbe_v1p1: 1                                      # If true, implements FEAT_BRBEv1p1.
+    -C cluster1.has_brbe_v1p1: 1
+    -C SVE.ScalableVectorExtension.has_sme2: 1                        # Whether SME2 is implemented (FEAT_SME2)

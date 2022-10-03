@@ -5,7 +5,9 @@
 ---
 description: >-
   Arm Architecture Envelope Model FVP configured with 8 CPUs across 2 clusters
-  (2x4) and 4GB DRAM.
+  (2x4) and 4GB DRAM. By default doesn't explicitly enable any architecture
+  features. Apply the architecture overlays at arch/v*.*.yaml to configure the
+  FVP for a sepcific architecture revision.
 
 run:
   name: FVP_Base_RevC-2xAEMvA
@@ -23,37 +25,17 @@ run:
     -C cluster0.PA_SIZE: 48
     -C cluster1.PA_SIZE: 48
 
-    # Architecture level to be implemented by the CPUs. Not all optional
-    # features for the extension will be enabled automatically, and on the whole
-    # we leave those disabled, since they are usually sensible. However, there
-    # are some optional features that are needed for many configs so we manually
-    # enable them below. This has not been done entirely scientifically, so if
-    # you feel these should change, please get in contact! Implement armv8.6 by
-    # default. If you want something different, you can set this key to 0 in an
-    # overlay, and add in another key (e.g. has_arm_v9-3=1).
-    -C cluster0.has_arm_v8-6: 1
-    -C cluster1.has_arm_v8-6: 1
-
-    -C cluster0.ecv_support_level: 2                                  # Implement Enhanced Counter Virtualization feature from ARMv8.6. 2:fully supported with CNTPOFF (FEAT_ECV).
-    -C cluster1.ecv_support_level: 2
-    -C cluster0.has_amu: 1                                            # Implement activity monitor functionality from ARMv8.4 (FEAT_AMUv1). 1:feature is implemented if ARMv8.4 is enabled.
-    -C cluster1.has_amu: 1
-    -C cluster0.has_branch_target_exception: 1                        # Implement Branch target identification mechanism from ARMv8.5 (FEAT_BTI). 1:feature is implemented if ARMv8.5 is enabled.
-    -C cluster1.has_branch_target_exception: 1
-    -C cluster0.has_rndr: 1                                           # Implement random number instructions to read from RNDR and RNDRSS random number registers from ARMv8.5 (FEAT_RNG). 1:feature is implemented if ARMv8.5 is enabled.
-    -C cluster1.has_rndr: 1
-    -C cluster0.memory_tagging_support_level: 2                       # Specify the memory tagging extension support level: 0, not implemented. 1, instructions and registers only are implemented (FEAT_MTE). 2, implemented (FEAT_MTE2). 3, implemented with asymmetric handling of exceptions
-    -C cluster1.memory_tagging_support_level: 2
-
-    --plugin: $$(which ScalableVectorExtension.so)
-
     # Misc FVP controls.
     --stat: null
     -C bp.vis.disable_visualisation: 1
+    -C bp.dram_metadata.is_enabled: 1                                 # If false, disables the MetaData controller functionality, and makes the component invisible to passing transactions.
     -C bp.refcounter.non_arch_start_at_default: 1                     # Firmware is expected to enable the timer at boot time. However, turning this parameter on is a model-specific way of enabling the counter module out of reset.
     -C bp.refcounter.use_real_time: 0                                 # Update the Generic Timer counter at a real-time base frequency instead of simulator time
+    -C bp.secure_memory: 1                                            # enable security checking by TZC-400
     -C bp.ve_sysregs.exit_on_shutdown: 1                              # SYS_CFG_SHUTDOWN exits simulation
     -C pctl.startup: 0.0.0.0                                          # Comma-separated list of cores (wildcards allowed) to be powered up at startup or system reset
+    -C cluster0.clear_reg_top_eret: 2                                 # Behaviour of the upper 32-bits of the Xn registers when changing between AArch32 state and AArch64 state.  2: upper 32-bits set to 0 for a random selection of accessible registers.
+    -C cluster1.clear_reg_top_eret: 2
 
     # Networking. By default use user-space networking, mapping port 22 in the
     # FVP to a user-specified port on the host (see rtvar:LOCAL_NET_PORT). This
@@ -69,17 +51,13 @@ run:
     -C cluster0.check_memory_attributes: 0                            # Disable checking that SW-set memory attributes conform to architecturally required constraints
     -C cluster1.check_memory_attributes: 0
 
-    # What do these mean??
-    -C bp.dram_metadata.is_enabled: 1                                 # If false, disables the MetaData controller functionality, and makes the component invisible to passing transactions.
-    -C bp.secure_memory: 1
+    # GIC config options.
     -C cluster0.gicv3.cpuintf-mmap-access-level: 2                    # Allowed values are: 0-mmap access is supported for GICC,GICH,GICV registers. 1-mmap access is supported only for GICV registers. 2-mmap access is not supported.
     -C cluster1.gicv3.cpuintf-mmap-access-level: 2
     -C cluster0.gicv3.without-DS-support: 1                           # GICv3 CPU interfaces do not support disabling security in the distributor
     -C cluster1.gicv3.without-DS-support: 1
     -C cluster0.gicv4.mask-virtual-interrupt: 1                       # If true, virtual interrupts can be masked from being reported to virtual CPU interface by setting ICH_HCR_EL2.DVIM 1. No control otherwise.
     -C cluster1.gicv4.mask-virtual-interrupt: 1
-    -C cluster0.has_v8_7_pmu_extension: 2                             # Implement PMU extension from ARMv8.7 (FEAT_PMUv3p7). (2: feature is implemented.)
-    -C cluster1.has_v8_7_pmu_extension: 2
 
     # These SMMU registers are configuring the arch model with a personality. Features to implement/expose.
     # What is this personality?

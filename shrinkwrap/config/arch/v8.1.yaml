@@ -1,0 +1,25 @@
+# Copyright (c) 2022, Arm Limited.
+# SPDX-License-Identifier: MIT
+
+%YAML 1.2
+---
+description: >-
+  Implements all mandatory requirements and features as well as a sensible
+  selection of optional ones for the Armv8.1 architecture extension within the
+  Base_RevC-2xAEMvA FVP. Intended for use as an overlay to
+  FVP_Base_RevC-2xAEMvA-base.yaml.
+
+layers:
+  - arch/v8.0.yaml
+
+build:
+  tfa:
+    params:
+      ARM_ARCH_MINOR: 1
+
+run:
+  params:
+    -C cluster0.has_arm_v8-1: 1
+    -C cluster1.has_arm_v8-1: 1
+    -C cluster0.has_large_system_ext: 1                               # Implement the ARMv8 Large System Extensions (FEAT_LSE).
+    -C cluster1.has_large_system_ext: 1

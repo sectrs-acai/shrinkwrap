@@ -1,0 +1,22 @@
+# Copyright (c) 2022, Arm Limited.
+# SPDX-License-Identifier: MIT
+
+%YAML 1.2
+---
+description: >-
+  Implements all mandatory requirements and features as well as a sensible
+  selection of optional ones for the Armv8.6 architecture extension within the
+  Base_RevC-2xAEMvA FVP. Intended for use as an overlay to
+  FVP_Base_RevC-2xAEMvA-base.yaml.
+
+layers:
+  - arch/v8.5.yaml
+
+run:
+  params:
+    -C cluster0.has_arm_v8-6: 1
+    -C cluster1.has_arm_v8-6: 1
+    -C cluster0.ecv_support_level: 2                                  # Implement Enhanced Counter Virtualization feature from ARMv8.6. 2:fully supported with CNTPOFF (FEAT_ECV).
+    -C cluster1.ecv_support_level: 2
+    -C cluster0.enhanced_pac2_level: 3                                # Implements Enhanced PAC2 from ARMv8.6 (FEAT_PAuth2). This feature is mandatory for ARMv8.6 but can be cherrypicked to a ARMv8.3(or greater) implementation. 3:EnhancedPAC2 with FPACCombined.
+    -C cluster1.enhanced_pac2_level: 3

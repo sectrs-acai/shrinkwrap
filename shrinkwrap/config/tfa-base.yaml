@@ -7,8 +7,6 @@ description: >-
   Trusted Firmware for A-class CPUs. This provides a baseline configuration that
   can be customized by higher layers.
 
-  TODO: Validate this config.
-
 build:
   tfa:
     repo:
@@ -19,14 +17,8 @@ build:
       PLAT: fvp
       DEBUG: 0
       LOG_LEVEL: 40
-      ENABLE_SVE_FOR_NS: 1
-      ENABLE_SVE_FOR_SWD: 1
       ARM_DISABLE_TRUSTED_WDOG: 1
       FVP_HW_CONFIG_DTS: fdts/fvp-base-gicv3-psci-1t.dts
-      ARM_ARCH_MINOR: 5
-      BRANCH_PROTECTION: 1
-      CTX_INCLUDE_PAUTH_REGS: 1
-      CTX_INCLUDE_MTE_REGS: 1
 
     build:
       # TODO: tfa has makefile dependency bug that prevents parallel make (-j > 1).

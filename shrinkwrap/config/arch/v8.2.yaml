@@ -1,0 +1,28 @@
+# Copyright (c) 2022, Arm Limited.
+# SPDX-License-Identifier: MIT
+
+%YAML 1.2
+---
+description: >-
+  Implements all mandatory requirements and features as well as a sensible
+  selection of optional ones for the Armv8.2 architecture extension within the
+  Base_RevC-2xAEMvA FVP. Intended for use as an overlay to
+  FVP_Base_RevC-2xAEMvA-base.yaml.
+
+layers:
+  - arch/v8.1.yaml
+
+build:
+  tfa:
+    params:
+      ARM_ARCH_MINOR: 2
+      ENABLE_SVE_FOR_NS: 1
+      ENABLE_SVE_FOR_SWD: 1
+
+run:
+  params:
+    -C cluster0.has_arm_v8-2: 1
+    -C cluster1.has_arm_v8-2: 1
+    -C cluster0.has_large_va: 1                                       # Implement support for the extended 52-bit virtual addresses from ARMv8.2 (FEAT_LVA). 2:feature is implemented.
+    -C cluster1.has_large_va: 1
+    --plugin: $$(which ScalableVectorExtension.so)

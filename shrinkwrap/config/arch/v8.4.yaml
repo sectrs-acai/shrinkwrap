@@ -1,0 +1,25 @@
+# Copyright (c) 2022, Arm Limited.
+# SPDX-License-Identifier: MIT
+
+%YAML 1.2
+---
+description: >-
+  Implements all mandatory requirements and features as well as a sensible
+  selection of optional ones for the Armv8.4 architecture extension within the
+  Base_RevC-2xAEMvA FVP. Intended for use as an overlay to
+  FVP_Base_RevC-2xAEMvA-base.yaml.
+
+layers:
+  - arch/v8.3.yaml
+
+build:
+  tfa:
+    params:
+      ARM_ARCH_MINOR: 4
+
+run:
+  params:
+    -C cluster0.has_arm_v8-4: 1
+    -C cluster1.has_arm_v8-4: 1
+    -C cluster0.has_amu: 1                                            # Implement activity monitor functionality from ARMv8.4 (FEAT_AMUv1). 1:feature is implemented if ARMv8.4 is enabled.
+    -C cluster1.has_amu: 1
