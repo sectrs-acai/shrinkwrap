@@ -668,7 +668,7 @@ class Script:
 		return f'{self.config}:{self.component} {self.summary}'
 
 
-def graph(configs):
+def build_graph(configs):
 	"""
 	Returns a graph of scripts where the edges represent dependencies. The
 	scripts should be executed according to the graph in order to correctly
