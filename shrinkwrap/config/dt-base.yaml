@@ -34,5 +34,8 @@ build:
       # This means we will always dirty the source tree.
       - make CPP=$${CROSS_COMPILE}cpp -j${param:jobs} src/arm64/arm/fvp-base-revc_args.dtb
 
+    clean:
+      - make CPP=$${CROSS_COMPILE}cpp -j${param:jobs} clean
+
     artifacts:
       DTB: ${param:sourcedir}/src/arm64/arm/fvp-base-revc_args.dtb

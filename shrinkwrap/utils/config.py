@@ -43,6 +43,9 @@ def _component_normalize(component, name):
 	if 'postbuild' not in component:
 		component['postbuild'] = []
 
+	if 'clean' not in component:
+		component['clean'] = []
+
 	if 'params' not in component:
 		component['params'] = {}
 
@@ -135,7 +138,7 @@ def _component_sort(component):
 	improves readability by humans.
 	"""
 	lut = ['repo', 'sourcedir', 'builddir', 'params',
-			'prebuild', 'build', 'postbuild', 'artifacts']
+			'prebuild', 'build', 'postbuild', 'clean', 'artifacts']
 	lut = {k: i for i, k in enumerate(lut)}
 	return dict(sorted(component.items(), key=lambda x: lut[x[0]]))
 
@@ -470,6 +473,8 @@ def resolveb(config, clivars={}):
 				desc['build'][i] = _string_substitute(s, lut)
 			for i, s in enumerate(desc['postbuild']):
 				desc['postbuild'][i] = _string_substitute(s, lut)
+			for i, s in enumerate(desc['clean']):
+				desc['clean'][i] = _string_substitute(s, lut)
 
 	# Compute the source and build directories for each component. If they
 	# are already present, then don't override. This allows users to supply

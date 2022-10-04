@@ -32,6 +32,9 @@ build:
       # TODO: tfa has makefile dependency bug that prevents parallel make (-j > 1).
       - make BUILD_BASE=${param:builddir} ${param:join_equal} all fip
 
+    clean:
+      - make BUILD_BASE=${param:builddir} realclean
+
     artifacts:
       BL1: ${param:builddir}/fvp/release/bl1.bin
       BL2: ${param:builddir}/fvp/release/bl2.bin

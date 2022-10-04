@@ -122,21 +122,21 @@ output to get a better feel for how they work. See
 Defined Macros
 --------------
 
-======================= ================================================================== ====
-macro                   scope                                                              description
-======================= ================================================================== ====
-``${param:sourcedir}``  build.<component>.{params, prebuild, build, postbuild, artifacts}  Directory in which the component's source code is located.
-``${param:builddir}``   build.<component>.{params, prebuild, build, postbuild, artifacts}  Directory in which the component should be built, if the component's build system supports separation of source and build trees.
-``${param:configdir}``  build.<component>.{params, prebuild, build, postbuild, artifacts}  Directory containing the config store.
-``${param:packagedir}`` build.<component>.{params, prebuild, build, postbuild, artifacts}  Directory in which all artifacts from the config build are packaged to and accessed from during run.
-``${param:packagedir}`` run.{params, rtvars, prerun}                                       Directory in which all artifacts from the config build are packaged to and accessed from during run.
-``${param:jobs}``       build.<component>.{params, prebuild, build, postbuild}             Maximum number of low level parallel jobs specified on the command line. To be passed to (e.g.) make as ``-j${param:jobs}``.
-``${param:join_equal}`` build.<component>.{prebuild, build, postbuild}                     String  containing all of the component's parameters (from its params dictionary), concatenated as ``key=value`` pairs.
-``${param:join_space}`` build.<component>.{prebuild, build, postbuild}                     String  containing all of the component's parameters (from its params dictionary), concatenated as ``key value`` pairs.
-``${artifact:<name>}``  build.<component>.{params, prebuild, build, postbuild}             Build path of an artifact declared by another component. Usage of these macros determine the component build dependency graph.
-``${artifact:<name>}``  run.rtvars                                                         Package path of an artifact.
-``${rtvar:<name>}``     run.params                                                         Run-time variables. The variable names, along with default values are declared in run.rtvars, and the user may override the value on the command line.
-======================= ================================================================== ====
+======================= ========================================================================= ====
+macro                   scope                                                                     description
+======================= ========================================================================= ====
+``${param:sourcedir}``  build.<component>.{params, prebuild, build, postbuild, clean, artifacts}  Directory in which the component's source code is located.
+``${param:builddir}``   build.<component>.{params, prebuild, build, postbuild, clean, artifacts}  Directory in which the component should be built, if the component's build system supports separation of source and build trees.
+``${param:configdir}``  build.<component>.{params, prebuild, build, postbuild, clean, artifacts}  Directory containing the config store.
+``${param:packagedir}`` build.<component>.{params, prebuild, build, postbuild, clean, artifacts}  Directory in which all artifacts from the config build are packaged to and accessed from during run.
+``${param:packagedir}`` run.{params, rtvars, prerun}                                              Directory in which all artifacts from the config build are packaged to and accessed from during run.
+``${param:jobs}``       build.<component>.{params, prebuild, build, postbuild, clean}             Maximum number of low level parallel jobs specified on the command line. To be passed to (e.g.) make as ``-j${param:jobs}``.
+``${param:join_equal}`` build.<component>.{prebuild, build, postbuild, clean}                     String  containing all of the component's parameters (from its params dictionary), concatenated as ``key=value`` pairs.
+``${param:join_space}`` build.<component>.{prebuild, build, postbuild, clean}                     String  containing all of the component's parameters (from its params dictionary), concatenated as ``key value`` pairs.
+``${artifact:<name>}``  build.<component>.{params, prebuild, build, postbuild, clean}             Build path of an artifact declared by another component. Usage of these macros determine the component build dependency graph.
+``${artifact:<name>}``  run.rtvars                                                                Package path of an artifact.
+``${rtvar:<name>}``     run.params                                                                Run-time variables. The variable names, along with default values are declared in run.rtvars, and the user may override the value on the command line.
+======================= ========================================================================= ====
 
 ******
 Schema
@@ -182,6 +182,7 @@ params      dictionary  Optional set of key:value pairs. When building most comp
 prebuild    list        List of shell commands to be executed during component build before the ``build`` list.
 build       list        List of shell commands to be executed during component build.
 postbuild   list        List of shell commands to be executed during component build after the ``build`` list.
+clean       list        List of shell commands to be executed during component clean.
 artifacts   dictionary  Set of artifacts that the component exports. Key is artifact name and value is path to built artifact. Other components can reference them with the ``${artifact:<name>}`` macros. Used to determine build dependencies.
 =========== =========== ===========
 

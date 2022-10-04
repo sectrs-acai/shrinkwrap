@@ -34,6 +34,10 @@ build:
       - tar -caf ${param:builddir}/modules.tgz -C ${param:builddir}/modules .
       - rm -rf ${param:builddir}/modules
 
+    clean:
+      - export ARCH=arm64
+      - make -j${param:jobs} O=${param:builddir} clean
+
     artifacts:
       KERNEL: ${param:builddir}/arch/arm64/boot/Image
       KMODULES: ${param:builddir}/modules.tgz
