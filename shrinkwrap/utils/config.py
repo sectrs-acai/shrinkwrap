@@ -721,43 +721,47 @@ def graph(configs):
 				component = config['build'][name]
 
 				g = Script('Syncing git repo', config["name"], name, preamble=pre)
-				g.append(f'# Sync git repo for config={config["name"]} component={name}.')
-				g.append(f'pushd {os.path.dirname(component["sourcedir"])}')
+				if len(component['repo']) > 0:
+					g.append(f'# Sync git repo for config={config["name"]} component={name}.')
+					g.append(f'pushd {os.path.dirname(component["sourcedir"])}')
 
-				for gitlocal, repo in component['repo'].items():
-					parent = os.path.basename(component["sourcedir"])
-					gitlocal = os.path.normpath(os.path.join(parent, gitlocal))
-					gitremote = repo['remote']
-					gitrev = repo['revision']
-					basedir = os.path.normpath(os.path.join(gitlocal, '..'))
-					sync = os.path.join(basedir, f'.{os.path.basename(gitlocal)}_sync')
+					for gitlocal, repo in component['repo'].items():
+						parent = os.path.basename(component["sourcedir"])
+						gitlocal = os.path.normpath(os.path.join(parent, gitlocal))
+						gitremote = repo['remote']
+						gitrev = repo['revision']
+						basedir = os.path.normpath(os.path.join(gitlocal, '..'))
+						sync = os.path.join(basedir, f'.{os.path.basename(gitlocal)}_sync')
 
-					g.append(f'if [ ! -d "{gitlocal}/.git" ] || [ -f "{sync}" ]; then')
-					g.append(f'\trm -rf {gitlocal} > /dev/null 2>&1 || true')
-					g.append(f'\tmkdir -p {basedir}')
-					g.append(f'\ttouch {sync}')
-					g.append(f'\tgit clone {gitremote} {gitlocal}')
-					g.append(f'\tpushd {gitlocal}')
-					g.append(f'\tgit checkout --force {gitrev}')
-					g.append(f'\tgit submodule update --init --checkout --recursive --force')
-					g.append(f'\tpopd')
-					g.append(f'\trm {sync}')
-					g.append(f'fi')
+						g.append(f'if [ ! -d "{gitlocal}/.git" ] || [ -f "{sync}" ]; then')
+						g.append(f'\trm -rf {gitlocal} > /dev/null 2>&1 || true')
+						g.append(f'\tmkdir -p {basedir}')
+						g.append(f'\ttouch {sync}')
+						g.append(f'\tgit clone {gitremote} {gitlocal}')
+						g.append(f'\tpushd {gitlocal}')
+						g.append(f'\tgit checkout --force {gitrev}')
+						g.append(f'\tgit submodule update --init --checkout --recursive --force')
+						g.append(f'\tpopd')
+						g.append(f'\trm {sync}')
+						g.append(f'fi')
 
-				g.append(f'popd')
+					g.append(f'popd')
 				g.seal()
 				graph[g] = [gl2]
 
 				b = Script('Building', config["name"], name, preamble=pre)
-				b.append(f'# Build for config={config["name"]} component={name}.')
-				b.append(f'pushd {component["sourcedir"]}')
-				for cmd in component['prebuild']:
-					b.append(cmd)
-				for cmd in component['build']:
-					b.append(cmd)
-				for cmd in component['postbuild']:
-					b.append(cmd)
-				b.append(f'popd')
+				if len(component['prebuild']) + \
+				   len(component['build']) + \
+				   len(component['postbuild']) > 0:
+					b.append(f'# Build for config={config["name"]} component={name}.')
+					b.append(f'pushd {component["sourcedir"]}')
+					for cmd in component['prebuild']:
+						b.append(cmd)
+					for cmd in component['build']:
+						b.append(cmd)
+					for cmd in component['postbuild']:
+						b.append(cmd)
+					b.append(f'popd')
 				b.seal()
 				graph[b] = [g] + [build_scripts[s] for s in config['graph'][name]]
 
@@ -765,11 +769,12 @@ def graph(configs):
 				ts.done(name)
 
 		a = Script('Copying artifacts', config["name"], preamble=pre, final=True)
-		a.append(f'# Copy artifacts for config={config["name"]}.')
-		for artifact in config['artifacts'].values():
-			src = artifact['src']
-			dst = os.path.join(workspace.package, artifact['dst'])
-			a.append(f'cp {src} {dst}')
+		if len(config['artifacts']) > 0:
+			a.append(f'# Copy artifacts for config={config["name"]}.')
+			for artifact in config['artifacts'].values():
+				src = artifact['src']
+				dst = os.path.join(workspace.package, artifact['dst'])
+				a.append(f'cp {src} {dst}')
 		a.seal()
 		graph[a] = [gl2] + [s for s in build_scripts.values()]
 
