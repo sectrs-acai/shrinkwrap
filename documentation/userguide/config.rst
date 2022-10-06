@@ -30,7 +30,7 @@ shrinkwrap.
 Merging Configs
 ***************
 
-A config is laid out as a hierachical data structure, using nested dictionaries.
+A config is laid out as a hierarchical data structure, using nested dictionaries.
 This suits it very well to being split into partial configs that are merged
 together into a single, final config. This allows maximal reuse of the config
 fragments and improves maintainability. Each config can optionally define a set
@@ -38,7 +38,7 @@ of foundational ``layers`` which it then builds upon. Furthermore, the user can
 optionally specify a custom ``overlay`` config on the command line. Layers are
 merged in order according to the following rules:
 
-For each leaf key in the union of the hierachical dictionaries:
+For each leaf key in the union of the hierarchical dictionaries:
 
 - If the upper value is null or not present, then the lower value is taken
 
@@ -99,7 +99,7 @@ Macros
 ******
 
 Macros are placeholders that can be specified in various parts of a config yaml
-file, which are substituted ("resolved") with information that is only known and
+file, which are substituted ("resolved") with information that is only known at
 build-time or run-time. There are specific rules about which macros can be used
 in which parts of the config, and about the order in which they get substituted.
 
@@ -194,7 +194,7 @@ run section
 key         type        description
 =========== =========== ===========
 name        string      Name of the FVP binary, which must be in $PATH.
-rtvars      dictionary  Run-Time variables. Keys are the variable names and values are the variables' default values. Run-Time variables can be overridden by the user at the command line.
+rtvars      dictionary  Run-Time variables. Keys are the variable names and values are a dictionary with keys 'type' (which must be one of 'path' and 'string') and 'value' (which takes the default value). Run-Time variables can be overridden by the user at the command line.
 params      dictionary  Dictionary of parameters to be passed to the FVP. Similar to the component's params, laying these out in a dictionary makes it easy for higher layers to override and add parameters.
 prerun      list        List of shell commands to be executed before the FVP is started.
 terminals   dictionary  Describes the set of UART terminals available for the FVP. key is the terminal parameter name known to the FVP (e.g. ``bp.terminal_0``) See below for format of the value.
