@@ -1,0 +1,39 @@
+# Copyright (c) 2022, Arm Limited.
+# SPDX-License-Identifier: MIT
+
+%YAML 1.2
+---
+description: >-
+  Best choice for: I have a linux-system.axf boot-wrapper and want to run it.
+
+  This config does not build any components (although shrinkwrap still requires
+  you to build it before running). Instead the user is expected to provide a
+  boot-wrapper executable (usually called linux-system.axf) as the BOOTWRAPPER
+  rtvar, which will be executed in the FVP. A ROOTFS can be optionally provided.
+  If present it is loaded into the virtio block device (/dev/vda).
+
+concrete: true
+
+layers:
+  - FVP_Base_RevC-2xAEMvA-base.yaml
+
+run:
+  rtvars:
+    BOOTWRAPPER:
+      type: path
+      value: null
+
+    ROOTFS:
+      type: path
+      value: ''
+
+  params:
+    -C pctl.startup: '*.*.*.*'
+    -C bp.secure_memory: 0
+    -a cluster*.cpu*: ${rtvar:BOOTWRAPPER}
+    -C bp.virtioblockdevice.image_path: ${rtvar:ROOTFS}
+
+  terminals:
+    bp.terminal_0:
+      friendly: linux
+      type: stdinout
