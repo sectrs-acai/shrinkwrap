@@ -59,6 +59,9 @@ def _build_normalize(build):
 	"""
 	Fills in any missing lists or dictionaries with empty ones.
 	"""
+	if len(build) == 0:
+		build['__dummy'] = {}
+
 	for name, component in build.items():
 		_component_normalize(component, name)
 
@@ -202,7 +205,14 @@ def _config_merge(base, new):
 
 		return new
 
-	return _merge(base, new)
+	config = _merge(base, new)
+
+	# We add a dummy component if there are no others. After merging, if
+	# there other components, remove it.
+	if '__dummy' in config['build'] and len(config['build']) > 1:
+		del config['build']['__dummy']
+
+	return config
 
 
 def _string_tokenize(string):
@@ -707,6 +717,9 @@ def build_graph(configs):
 				gl2.append(f'mkdir -p {dir}')
 				dirs.add(dir)
 		dirs = set()
+		dir = os.path.join(workspace.package, config['name'])
+		gl2.append(f'mkdir -p {dir}')
+		dirs.add(dir)
 		for artifact in config['artifacts'].values():
 			dst = os.path.join(workspace.package, artifact['dst'])
 			dir = os.path.dirname(dst)
