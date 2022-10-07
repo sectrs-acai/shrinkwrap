@@ -78,12 +78,11 @@ def dispatch(args):
 	resolveb = config.load(filename, overlay)
 	rtvars_dict = rtvars.parse(args.rtvar)
 	resolver = config.resolver(resolveb, rtvars_dict)
-	cmds = '\n'.join(resolver['run']['prerun'] + resolver['run']['run'])
+	cmds = _pretty_print_sh(resolver['run'])
 
 	# If dry run, just output the FVP command that we would have run. We
 	# don't include the netcat magic to access the fvp terminals.
 	if args.dry_run:
-		print('# Boot FVP.')
 		print(cmds)
 		return
 
@@ -225,3 +224,33 @@ def dispatch(args):
 			print()
 
 			pm.run()
+
+
+def _pretty_print_sh(run):
+	prerun = run['prerun']
+	run = run['run']
+
+	# This is a hack to improve the way the FVP arguments look. It tends to
+	# be huge so attempt to make it more readable by putting each option on
+	# a separate line and sorting alphabetically. Only likely to work for
+	# FVP so try to infer its definitely the FVP.
+	if len(run) == 1:
+		prog = run[0].split(' ')[0].lower()
+		if prog.find('isim') >= 0 or prog.find('fvp') >= 0:
+			parts = run[0].split(' -')
+			prog = parts[0]
+			args = sorted(parts[1:])
+			run = [' \\\n    -'.join([prog] + args)]
+
+	pre = config.script_preamble(False)
+	script = config.Script('run model', preamble=pre)
+
+	if len(prerun) > 0:
+		script.append('# Execute prerun commands.')
+		script.append('\n'.join(prerun))
+		script.append()
+
+	script.append('# Run the model.')
+	script.append('\n'.join(run))
+
+	return script.commands()
