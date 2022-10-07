@@ -81,9 +81,9 @@ run:
     # command line. UEFI will execute this when entering its shell. Copy the
     # images to the package directory (which is the root of our semihosting
     # environment) then refer to them by its base name to UEFI.
-    - cp ${rtvar:KERNEL} ${param:packagedir}
+    - cp ${rtvar:KERNEL} ${param:packagedir}/Image
     - cat <<EOF > ${param:packagedir}/startup.nsh
-    - $$(basename ${rtvar:KERNEL}) ${rtvar:CMDLINE}
+    - Image ${rtvar:CMDLINE}
     - EOF
 
   terminals:
