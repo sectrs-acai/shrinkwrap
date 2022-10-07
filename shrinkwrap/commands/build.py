@@ -48,9 +48,10 @@ def add_parser(parser, formatter):
 
 	cmdp.add_argument('-o', '--overlay',
 		metavar='cfgfile', required=False,
-		help="""Optional config file overlay to override build-time
-		     settings. Only entries within the "build" section are
-		     used. Applied to all configs being built.""")
+		help="""Optional config file overlay to override run-time and
+		     build-time settings. Only entries within the "build" and
+		     "run" sections are used. Applied to all configs being
+		     built.""")
 
 	cmdp.add_argument('-t', '--tasks',
 		required=False, default=dflt_jobs(), metavar='count', type=int,

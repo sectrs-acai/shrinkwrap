@@ -601,7 +601,7 @@ def load_resolveb_all(names, overlayname=None, clivars={}):
 	if overlayname:
 		overlay = filename(overlayname)
 		overlay = load(overlay)
-		overlay = {'build': overlay['build']}
+		overlay = {'build': overlay['build'], 'run': overlay['run']}
 
 	for name in names:
 		try:

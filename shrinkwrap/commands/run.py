@@ -37,8 +37,9 @@ def add_parser(parser, formatter):
 	cmdp.add_argument('-o', '--overlay',
 		metavar='cfgfile', required=False,
 		help="""Optional config file overlay to override run-time
-		     settings. Only entries within the "run" section are
-		     used.""")
+		     settings. Only entries within the "run" section are used.
+		     This is in addition to any overlay passed at
+		     build-time.""")
 
 	cmdp.add_argument('-r', '--rtvar',
 		metavar='key=value', required=False, default=[],
