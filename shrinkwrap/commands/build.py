@@ -133,7 +133,7 @@ def dispatch(args):
 		for c in configs:
 			# Dump the config.
 			cfg_name = os.path.join(workspace.package,
-						c['fullname'])
+						f'{c["name"]}.yaml')
 			with open(cfg_name, 'w') as cfg:
 				config.dump(c, cfg)
 

@@ -327,7 +327,7 @@ def filename(name, rel=os.getcwd()):
 		return fpath
 
 
-def load(file_name, overlay=None):
+def load(file_name, overlay=None, friendly=None):
 	"""
 	Load a config from disk and return it as a dictionary. The config is
 	fully normalized, validated and merged.
@@ -360,6 +360,8 @@ def load(file_name, overlay=None):
 	del config['layers']
 	config['fullname'] = os.path.basename(file_name)
 	config['name'] = os.path.splitext(config['fullname'])[0]
+	if friendly:
+		config['fullname'] = friendly
 
 	return _config_sort(config)
 
@@ -603,9 +605,11 @@ def load_resolveb_all(names, overlayname=None, clivars={}):
 	configs = []
 
 	if not explicit:
+		names = []
 		p = workspace.config
-		names = [f for f in os.listdir(p)
-				if os.path.isfile(os.path.join(p, f))]
+		for root, dirs, files in os.walk(p):
+			names += [os.path.relpath(os.path.join(root, f), p)
+								for f in files]
 
 	overlay = None
 	if overlayname:
@@ -616,7 +620,7 @@ def load_resolveb_all(names, overlayname=None, clivars={}):
 	for name in names:
 		try:
 			file = filename(name)
-			merged = load(file, overlay)
+			merged = load(file, overlay, name)
 			resolved = resolveb(merged, clivars)
 			configs.append(resolved)
 		except Exception:
@@ -710,7 +714,7 @@ def build_graph(configs):
 	gl1 = Script('Removing old package', preamble=pre)
 	gl1.append(f'# Remove old package.')
 	for config in configs:
-		gl1.append(f'rm -rf {workspace.package}/{config["fullname"]} > /dev/null 2>&1 || true')
+		gl1.append(f'rm -rf {workspace.package}/{config["name"]}.yaml > /dev/null 2>&1 || true')
 		gl1.append(f'rm -rf {workspace.package}/{config["name"]} > /dev/null 2>&1 || true')
 	gl1.seal()
 	graph[gl1] = []
@@ -820,7 +824,7 @@ def clean_graph(configs, clean_repo):
 	gl1 = Script('Removing old package', preamble=pre)
 	gl1.append(f'# Remove old package.')
 	for config in configs:
-		gl1.append(f'rm -rf {workspace.package}/{config["fullname"]} > /dev/null 2>&1 || true')
+		gl1.append(f'rm -rf {workspace.package}/{config["name"]}.yaml > /dev/null 2>&1 || true')
 		gl1.append(f'rm -rf {workspace.package}/{config["name"]} > /dev/null 2>&1 || true')
 	gl1.seal()
 	graph[gl1] = []
