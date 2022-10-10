@@ -16,7 +16,7 @@ build:
   linux:
     repo:
       remote: git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
-      revision: master
+      revision: v6.0
 
     prebuild:
       - export ARCH=arm64

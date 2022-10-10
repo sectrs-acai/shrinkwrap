@@ -13,13 +13,13 @@ build:
     repo:
       edk2:
         remote: https://github.com/tianocore/edk2.git
-        revision: master
+        revision: edk2-stable202208
       edk2-platforms:
         remote: https://github.com/tianocore/edk2-platforms.git
-        revision: master
+        revision: ad00518399fc624688d434321693439062c39bde
       acpica:
         remote: https://github.com/acpica/acpica.git
-        revision: master
+        revision: R03_31_22
 
     prebuild:
       - export WORKSPACE=${param:sourcedir}
