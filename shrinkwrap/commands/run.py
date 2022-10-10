@@ -187,6 +187,12 @@ def dispatch(args):
 			else:
 				pm.set_handler(log.log)
 
+	def _complete(pm, proc, retcode):
+		# If the FVP exits with non-zero exit code, we propagate that
+		# error so that shrinkwrap also exits with non-zero exit code.
+		if retcode not in [0, None] and proc.run_to_end:
+			raise Exception(f'FVP failed with {retcode}')
+
 	# Run under a runtime environment, which may just run commands natively
 	# on the host or may execute commands in a container, depending on what
 	# the user specified.
@@ -212,7 +218,7 @@ def dispatch(args):
 			# have terminated. The fvp will terminate when its told
 			# to `poweroff` and netcat will terminate when it sees
 			# the fvp has gone.
-			pm = process.ProcessManager(_find_term_ports)
+			pm = process.ProcessManager(_find_term_ports, _complete)
 			pm.add(process.Process(f'bash {tmpfilename}',
 					False,
 					(log.alloc_data('fvp'),),

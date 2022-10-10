@@ -92,7 +92,8 @@ def main():
 if __name__ == "__main__":
 	try:
 		main()
-	except SystemExit:
-		pass
+	except SystemExit as e:
+		raise e
 	except BaseException as e:
 		print(f'{e.__class__.__name__}: {e}')
+		exit(1)
