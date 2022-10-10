@@ -116,6 +116,7 @@ def dispatch(args):
 
 			add_volume(workspace.build)
 			add_volume(workspace.package)
+			add_volume(workspace.config)
 
 			for conf in configs:
 				for comp in conf['build'].values():
