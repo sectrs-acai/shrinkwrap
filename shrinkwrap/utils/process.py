@@ -48,12 +48,13 @@ class ProcessManager:
 		if self._sel:
 			self._proc_activate(process)
 
-	def run(self):
+	def run(self, forward_stdin=False):
 		try:
 			self._sel = selectors.DefaultSelector()
 			self._active = 0
 
-			self._stdin_activate()
+			if forward_stdin:
+				self._stdin_activate()
 
 			for proc in self._procs:
 				self._proc_activate(proc)
@@ -69,7 +70,8 @@ class ProcessManager:
 				except:
 					pass
 
-			self._stdin_deactivate()
+			if forward_stdin:
+				self._stdin_deactivate()
 
 			self._sel.close()
 			self._sel = None

@@ -229,7 +229,7 @@ def dispatch(args):
 			print("All other keys are passed through.")
 			print()
 
-			pm.run()
+			pm.run(forward_stdin=True)
 
 
 def _pretty_print_sh(run):
