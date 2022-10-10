@@ -13,6 +13,7 @@ sys.path = [root] + sys.path
 
 import argparse
 import shutil
+from shrinkwrap import __version__
 
 
 from shrinkwrap.commands import build
@@ -44,6 +45,10 @@ def main():
 	parser = argparse.ArgumentParser(epilog='To file a bug report, contact '
 						'<ryan.roberts@arm.com>.',
 					 formatter_class=formatter)
+
+	parser.add_argument('--version',
+		action='version',
+		version=f'{tool_name} v{__version__}')
 
 	parser.add_argument('-R', '--runtime',
 		metavar='engine', required=False, default='null',
