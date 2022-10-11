@@ -443,3 +443,39 @@ Now do a build, passing in the overlay:
 .. code-block:: shell
 
   shrinkwrap --runtime=docker build --overlay=my-overlay.yaml ns-edk2-dt.yaml
+
+**********************************************
+Use Case: Changing Arm Architecture Extensions
+**********************************************
+
+Shrinkwrap comes with a set of configs that can be overlaid onto the primary
+config in order to modify the targeted Arm architecture revision. These overlays
+provide all the required modifications for the TF-A build configuration and the
+FVP run configuration. Each architecture revision includes all mandatory
+features associated with that extension as well as a selection of
+sensible/common optional features.
+
+``Armv8.0`` - ``Armv8.8`` and ``Armv9.0`` - ``Armv9.3`` are currently supported.
+The yaml files are in the ``arch`` subdirectory of the config store. (You can
+see them by running the ``inspect`` command with the ``--all`` option).
+
+The below will build the ``ns-edk2-dt`` config for Armv8.8 and run it on the FVP
+configured for the same revision.
+
+.. code-block:: shell
+
+  shrinkwrap --runtime=docker build ns-edk2-dt.yaml --overlay=arch/v8.8.yaml
+  shrinkwrap --runtime=docker run ns-edk2-dt.yaml --rtvar=KERNEL=path/to/Image
+
+.. warning::
+
+  Some components (notably TF-A) fail to incrementally build when changing their
+  make parameters. Therefore, if you want to change the architecture revision
+  for a config that has already been built, you must first clean tfa. See the
+  below to rebuild for Armv9.3.
+
+.. code-block:: shell
+
+  shrinkwrap --runtime=docker clean ns-edk2-dt.yaml --filter=tfa
+  shrinkwrap --runtime=docker build ns-edk2-dt.yaml --overlay=arch/v9.3.yaml
+  shrinkwrap --runtime=docker run ns-edk2-dt.yaml --rtvar=KERNEL=path/to/Image
