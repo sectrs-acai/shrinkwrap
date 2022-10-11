@@ -22,11 +22,10 @@ def add_parser(parser, formatter):
 		     standard configs or an explicitly specified set of configs.
 		     Info includes name, description and runtime variables with
 		     their default values.""",
-		epilog="""The config store exists at at
-		     <SHRINKWRAP_CONFIG>. <SHRINKWRAP_CONFIG> defaults to
-		     'config' directory within the directory containing the
-		     shrinkwrap program, but the user can override it by setting
-		     the environment variable.""")
+		epilog="""The config store(s) are defined at at
+		     <SHRINKWRAP_CONFIG> as a colon-separated list of
+		     directories. <SHRINKWRAP_CONFIG> has no default and must be
+		     set by the user.""")
 
 	cmdp.add_argument('configs',
 		metavar='config', nargs='*',

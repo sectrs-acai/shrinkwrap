@@ -20,11 +20,10 @@ def add_parser(parser, formatter):
 		help="""Outputs to stdout the result of either merging down the
 		     config layers, or resolving macros within the merged
 		     config.""",
-		epilog="""The config store exists at at
-		     <SHRINKWRAP_CONFIG>. <SHRINKWRAP_CONFIG> defaults to
-		     'config' directory within the directory containing the
-		     shrinkwrap program, but the user can override it by setting
-		     the environment variable.""")
+		epilog="""The config store(s) are defined at at
+		     <SHRINKWRAP_CONFIG> as a colon-separated list of
+		     directories. <SHRINKWRAP_CONFIG> has no default and must be
+		     set by the user.""")
 
 	cmdp.add_argument('config',
 		metavar='config',

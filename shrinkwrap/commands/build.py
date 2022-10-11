@@ -26,17 +26,18 @@ def add_parser(parser, formatter):
 		help="""Builds either all concrete standard configs or an
 		     explicitly specified set of configs and packages them ready
 		     to run.""",
-		epilog="""The config store exists at at
-		     <SHRINKWRAP_CONFIG>, building is done at <SHRINKWRAP_BUILD>
-		     and output is saved to <SHRINKWRAP_PACKAGE>. The package
+		epilog="""The config store(s) are defined at at
+		     <SHRINKWRAP_CONFIG> as a colon-separated list of
+		     directories. Building is done at <SHRINKWRAP_BUILD> and
+		     output is saved to <SHRINKWRAP_PACKAGE>. The package
 		     includes all FW binaries, a manifest and a build.sh script
 		     containing all the commands that were executed per config.
 		     Any pre-existing config package directory is first deleted.
-		     <SHRINKWRAP_CONFIG> defaults to the 'config' directory
-		     within the directory containing the shrinkwrap program.
-		     <SHRINKWRAP_BUILD> and <SHRINKWRAP_PACKAGE> default to
-		     '~/.shrinkwrap/build' and '~/.shrinkwrap/package'. The user
-		     can override them by setting the environment variables.""")
+		     <SHRINKWRAP_CONFIG> has no default and must be set by the
+		     user. <SHRINKWRAP_BUILD> and <SHRINKWRAP_PACKAGE> default
+		     to '~/.shrinkwrap/build' and '~/.shrinkwrap/package'. The
+		     user can override them by setting the environment
+		     variables.""")
 
 	cmdp.add_argument('configs',
 		metavar='config', nargs='*',
@@ -116,7 +117,8 @@ def dispatch(args):
 
 			add_volume(workspace.build)
 			add_volume(workspace.package)
-			add_volume(workspace.config)
+			for c in workspace.configs():
+				add_volume(c)
 
 			for conf in configs:
 				for comp in conf['build'].values():

@@ -280,26 +280,46 @@ def _string_substitute(string, lut, partial=False):
 	the returned string. If partial is False, any macro that does not have a
 	value in the lut will cause an interrupt.
 	"""
-	new = ''
+	calls = []
+	frags = []
+	frag = ''
 	tokens = _string_tokenize(string)
 
 	for t in tokens:
 		if t['type'] == 'literal':
-			new += t['value']
+			frag += t['value']
 		elif t['type'] == 'macro':
 			m = t['value']
 			try:
-				new += lut[m['type']][m['name']]
+				lu = lut[m['type']][m['name']]
+				if callable(lu):
+					calls.append(lu)
+					frags.append(frag)
+					frag = ''
+				else:
+					frag += lu
 			except KeyError:
 				if partial:
-					new += f"${{{m['type']}:{m['name']}}}"
+					frag += f"${{{m['type']}:{m['name']}}}"
 				else:
 					raise
 
 		else:
 			assert(False)
 
-	return new
+	frags.append(frag)
+	assert(len(calls) + 1 == len(frags))
+
+	final = frags[0]
+
+	# Any callable macros expect to be called with anything that immediately
+	# follows them to the next whitespace, so do that now and assemble the
+	# final string.
+	for call, frag in zip(calls, frags[1:]):
+		final += call(frag.split(' ')[0])
+		final += frag
+
+	return final
 
 
 def _mk_params(params, separator):
@@ -317,12 +337,12 @@ def filename(name, rel=os.getcwd()):
 	that will generate the most useful error.
 	"""
 	fpath = os.path.abspath(os.path.join(rel, name))
-	cpath = os.path.abspath(os.path.join(workspace.config, name))
+	cpath = workspace.config(name)
 
 	if os.path.exists(fpath):
 		return fpath
-	elif os.path.exists(cpath):
-		return cpath
+	elif cpath:
+		return os.path.abspath(os.path.join(cpath, name))
 	else:
 		return fpath
 
@@ -440,7 +460,7 @@ def resolveb(config, clivars={}):
 					'packagedir': os.path.join(
 							workspace.package,
 						   	config['name']),
-					'configdir': workspace.config,
+					'configdir': lambda x: workspace.config(x, False),
 				},
 			}
 
@@ -467,7 +487,7 @@ def resolveb(config, clivars={}):
 					'packagedir': os.path.join(
 							workspace.package,
 						   	config['name']),
-					'configdir': workspace.config,
+					'configdir': lambda x: workspace.config(x, False),
 				},
 			}
 
@@ -606,9 +626,10 @@ def load_resolveb_all(names, overlayname=None, clivars={}):
 
 	if not explicit:
 		names = []
-		p = workspace.config
-		for root, dirs, files in os.walk(p):
-			names += [os.path.relpath(os.path.join(root, f), p)
+		for p in workspace.configs():
+			for root, dirs, files in os.walk(p):
+				names += [os.path.relpath(
+						os.path.join(root, f), p)
 								for f in files]
 
 	overlay = None
