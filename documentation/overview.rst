@@ -54,11 +54,7 @@ Features
 - Transparently view the generated bash commands for a given config build or run
 - Parallelize builds to make best use of available resources
 - Acquire source from Git remote or point to existing Git local repo
-- Choose how to redirect each FVP UART terminal I/O:
-
-  - mux to stdout
-  - launch telnet
-  - automatically launch xterm (only in native runtime)
+- Easily switch between all Arm architecture extensions v8.0 - v9.x.
 
 ********************
 Repository Structure
