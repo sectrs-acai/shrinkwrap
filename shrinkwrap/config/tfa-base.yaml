@@ -13,6 +13,8 @@ build:
       remote: https://git.trustedfirmware.org/TF-A/trusted-firmware-a.git
       revision: v2.7.0
 
+    toolchain: aarch64-none-elf-
+
     params:
       PLAT: fvp
       DEBUG: 0

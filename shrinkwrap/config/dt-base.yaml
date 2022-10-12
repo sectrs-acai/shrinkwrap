@@ -15,6 +15,8 @@ build:
       remote: git://git.kernel.org/pub/scm/linux/kernel/git/devicetree/devicetree-rebasing.git
       revision: v6.0-dts
 
+    toolchain: aarch64-none-elf-
+
     prebuild:
       # This script dynamically adds kernel bootargs to the chosen node within
       # the device tree before it gets compiled. It uses any defined key=value

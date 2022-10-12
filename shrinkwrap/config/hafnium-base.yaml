@@ -12,6 +12,8 @@ build:
       remote: https://git.trustedfirmware.org/hafnium/hafnium.git
       revision: v2.7
 
+    toolchain: aarch64-none-elf-
+
     params:
       PROJECT: reference
 

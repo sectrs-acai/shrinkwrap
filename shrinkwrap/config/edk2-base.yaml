@@ -21,6 +21,8 @@ build:
         remote: https://github.com/acpica/acpica.git
         revision: R03_31_22
 
+    toolchain: aarch64-none-elf-
+
     prebuild:
       - export WORKSPACE=${param:sourcedir}
       - export GCC5_AARCH64_PREFIX=$$CROSS_COMPILE

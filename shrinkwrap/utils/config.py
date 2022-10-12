@@ -34,6 +34,9 @@ def _component_normalize(component, name):
 	if 'builddir' not in component:
 		component['builddir'] = None
 
+	if 'toolchain' not in component:
+		component['toolchain'] = None
+
 	if 'prebuild' not in component:
 		component['prebuild'] = []
 
@@ -140,7 +143,7 @@ def _component_sort(component):
 	Sort the component so that the keys are in a canonical order. This
 	improves readability by humans.
 	"""
-	lut = ['repo', 'sourcedir', 'builddir', 'params',
+	lut = ['repo', 'sourcedir', 'builddir', 'toolchain', 'params',
 			'prebuild', 'build', 'postbuild', 'clean', 'artifacts']
 	lut = {k: i for i, k in enumerate(lut)}
 	return dict(sorted(component.items(), key=lambda x: lut[x[0]]))
@@ -805,6 +808,7 @@ def build_graph(configs):
 				   len(component['build']) + \
 				   len(component['postbuild']) > 0:
 					b.append(f'# Build for config={config["name"]} component={name}.')
+					b.append(f'export CROSS_COMPILE={component["toolchain"] if component["toolchain"] else ""}')
 					b.append(f'pushd {component["sourcedir"]}')
 					for cmd in component['prebuild']:
 						b.append(cmd)
@@ -860,6 +864,7 @@ def clean_graph(configs, clean_repo):
 				c = Script('Cleaning', config["name"], name, preamble=pre)
 				c.append(f'# Clean for config={config["name"]} component={name}.')
 				if len(component['clean']) > 0:
+					c.append(f'export CROSS_COMPILE={component["toolchain"] if component["toolchain"] else ""}')
 					c.append(f'if [ -d "{component["sourcedir"]}" ]; then')
 					c.append(f'\tpushd {component["sourcedir"]}')
 					for cmd in component['clean']:
