@@ -21,6 +21,7 @@ build:
     toolchain: aarch64-none-elf-
 
     prebuild:
+      - export BUILD_KMODULES=true
       - export ARCH=arm64
       - make -j${param:jobs} O=${param:builddir} defconfig
 
@@ -28,13 +29,21 @@ build:
       # Finalize the config.
       - make -j${param:jobs} O=${param:builddir} olddefconfig
 
-      # Make the kernel image and modules.
-      - make -j${param:jobs} O=${param:builddir} Image modules
+      - if [ "$$BUILD_KMODULES" = "true" ]; then
+          # Make the kernel image and modules.
+      -   make -j${param:jobs} O=${param:builddir} Image modules
 
-      # Package the modules into a tgz archive.
-      - make -j${param:jobs} O=${param:builddir} INSTALL_MOD_PATH=${param:builddir}/modules modules_install
-      - tar -caf ${param:builddir}/modules.tgz -C ${param:builddir}/modules .
-      - rm -rf ${param:builddir}/modules
+          # Package the modules into a tgz archive.
+      -   make -j${param:jobs} O=${param:builddir} INSTALL_MOD_PATH=${param:builddir}/modules modules_install
+      -   tar -caf ${param:builddir}/modules.tgz -C ${param:builddir}/modules .
+      -   rm -rf ${param:builddir}/modules
+      - else
+          # Make the kernel image.
+      -   make -j${param:jobs} O=${param:builddir} Image
+
+          # Dummy modules archive to keep artifacts happy.
+      -   touch ${param:builddir}/modules.tgz
+      - fi
 
     clean:
       - export ARCH=arm64
