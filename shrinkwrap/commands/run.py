@@ -224,9 +224,12 @@ def dispatch(args):
 					(log.alloc_data('fvp'),),
 					True))
 
+			rt_ip = runtime.get().ip_address()
+
 			print()
 			print("Press '^]' to quit shrinkwrap.")
 			print("All other keys are passed through.")
+			print(f"Environment ip address: {rt_ip}.")
 			print()
 
 			pm.run(forward_stdin=True)
