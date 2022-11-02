@@ -460,9 +460,6 @@ def resolveb(config, clivars={}):
 				'param': {
 					'sourcedir': desc['sourcedir'],
 					'builddir': desc['builddir'],
-					'packagedir': os.path.join(
-							workspace.package,
-						   	config['name']),
 					'configdir': lambda x: workspace.config(x, False),
 				},
 			}
@@ -487,9 +484,6 @@ def resolveb(config, clivars={}):
 					**clivars,
 					'sourcedir': desc['sourcedir'],
 					'builddir': desc['builddir'],
-					'packagedir': os.path.join(
-							workspace.package,
-						   	config['name']),
 					'configdir': lambda x: workspace.config(x, False),
 				},
 			}
@@ -570,8 +564,6 @@ def resolver(config, rtvars={}, clivars={}):
 	lut = {
 		'param': {
 			**dict(clivars),
-			'packagedir': os.path.join(workspace.package,
-						   config['name']),
 		},
 		'artifact': {k: v['dst']
 				for k, v in config['artifacts'].items()},

@@ -72,17 +72,21 @@ run:
     -C bp.secureflashloader.fname: ${rtvar:BL1}
     -C bp.flashloader0.fname: ${rtvar:FIP}
     -C bp.virtioblockdevice.image_path: ${rtvar:ROOTFS}
-    -C cluster0.cpu0.semihosting-cwd: ${param:packagedir}
+    -C cluster0.cpu0.semihosting-cwd: $${SEMIHOSTDIR}
     -C bp.flashloader1.fname: ${rtvar:EDK2FLASH}
 
   prerun:
     # We use the FVP's and UEFI's semihosting capability to get the images into
     # the system. Wrap this up as a command in the startup.nsh along with the
     # command line. UEFI will execute this when entering its shell. Copy the
-    # images to the package directory (which is the root of our semihosting
-    # environment) then refer to them by its base name to UEFI.
-    - cp ${rtvar:KERNEL} ${param:packagedir}/Image
-    - cat <<EOF > ${param:packagedir}/startup.nsh
+    # images to a unique temp directory (which is the root of our semihosting
+    # environment) then refer to them by its base name to UEFI. Using a unique
+    # temp directory means we can run multiple instances in parallel.
+    - SEMIHOSTDIR=`mktemp -d`
+    - function finish { rm -rf $$SEMIHOSTDIR; }
+    - trap finish EXIT
+    - cp ${rtvar:KERNEL} $${SEMIHOSTDIR}/Image
+    - cat <<EOF > $${SEMIHOSTDIR}/startup.nsh
     - Image ${rtvar:CMDLINE}
     - EOF
 
