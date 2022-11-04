@@ -1,0 +1,31 @@
+# Copyright (c) 2022, Arm Limited.
+# SPDX-License-Identifier: MIT
+
+# This is intended to start from a slim image and adds in the aarch32
+# toolchains. These are pretty massive (multiple GB) so we maintain a separate
+# image, as they are not required for many use cases.
+
+ARG BASE
+FROM ${BASE}
+
+# Install the arm-linux-gnueabihf- toolchain. We use the stock Debian packages
+# for this. See below for the arm-none-eabi- toolchain, which comes from
+# developer.arm.com.
+RUN apt-get install --assume-yes --no-install-recommends --option=debug::pkgProblemResolver=yes \
+		crossbuild-essential-armhf \
+		libc6-dev-armhf-cross
+
+# Install aarch32 toolchain (arm-none-eabi-). This is parameterized so the
+# caller can easily update the version and architecture for different builds, or
+# even omit it by providing the special name "none".
+ARG TCH_PKG_NAME_AARCH32
+ARG TCH_PATH_AARCH32
+COPY ${TCH_PKG_NAME_AARCH32} /tools/.
+RUN cd /tools \
+	&& if [ "${TCH_PKG_NAME_AARCH32}" != "none" ]; then \
+	    tar xf ${TCH_PKG_NAME_AARCH32}; \
+	fi \
+	&& rm ${TCH_PKG_NAME_AARCH32} \
+	&& cd -
+ENV TCH_PATH_AARCH32="/tools/${TCH_PATH_AARCH32}"
+ENV PATH="${TCH_PATH_AARCH32}:${PATH}"

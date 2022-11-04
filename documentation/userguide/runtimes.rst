@@ -78,25 +78,25 @@ You are now logged in and able to pull shrinkwrap images.
 Build Container Image Locally
 *****************************
 
-If you have a need to build the shrinkwrap container image on your local system,
+If you have a need to build the shrinkwrap container images on your local system,
 you can do it as follows:
 
 .. code-block:: shell
 
   cd docker
-  ./build.sh
+  ./build.sh local
 
 This will build an image called
-``oss-kernel--docker.artifactory.geo.arm.com/shrinkwrap/base-debian11-<ARCH>``
+``oss-kernel--docker.artifactory.geo.arm.com/shrinkwrap/base-slim-<ARCH>``
 with the tag ``local``. To use the locally built image, call shrinkwrap as
 follows if running on an x86_64 system:
 
 .. code-block:: shell
 
-  shrinkwrap --runtime=<name> --image=oss-kernel--docker.artifactory.geo.arm.com/shrinkwrap/base-debian11-x86_64:local ...
+  shrinkwrap --runtime=<name> --image=oss-kernel--docker.artifactory.geo.arm.com/shrinkwrap/base-slim-x86_64:local ...
 
 Or like this if running on an aarch64 system:
 
 .. code-block:: shell
 
-  shrinkwrap --runtime=<name> --image=oss-kernel--docker.artifactory.geo.arm.com/shrinkwrap/base-debian11-aarch64:local ...
+  shrinkwrap --runtime=<name> --image=oss-kernel--docker.artifactory.geo.arm.com/shrinkwrap/base-slim-aarch64:local ...

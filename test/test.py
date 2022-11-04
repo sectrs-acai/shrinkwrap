@@ -190,7 +190,7 @@ def main():
 	parser.add_argument('-I', '--image',
 		metavar='name',
 		required=False,
-		default='oss-kernel--docker.artifactory.geo.arm.com/shrinkwrap/base-debian11:latest',
+		default='oss-kernel--docker.artifactory.geo.arm.com/shrinkwrap/base-slim:latest',
 		help="""If using a container runtime, specifies the name of the
 		     image to use. Defaults to the official shrinkwrap image.""")
 

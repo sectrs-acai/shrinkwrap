@@ -1,0 +1,101 @@
+# Copyright (c) 2022, Arm Limited.
+# SPDX-License-Identifier: MIT
+
+ARG BASE
+FROM ${BASE}
+
+# Ensure apt won't ask for user input.
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Setup apt before we install any packages.
+RUN apt-get update \
+	&& apt-get install auto-apt-proxy --assume-yes \
+	&& (timeout --signal=KILL 10s auto-apt-proxy \
+		|| apt-get purge --quiet --assume-yes auto-apt-proxy)
+
+# We now install packages required by all the FW components that Shrinkwrap
+# supports building. Often there are overlapping components, but we (re)specify
+# them for each component in order to keep track of who needs what.
+
+# Install packages that Shrinkwrap relies upon.
+RUN apt-get install --assume-yes --no-install-recommends --option=debug::pkgProblemResolver=yes \
+		netcat-openbsd \
+		python3 \
+		python3-pip \
+		telnet \
+		wget
+RUN pip3 install \
+		termcolor \
+		tuxmake
+
+# Install packages requried by TF-A.
+# From https://trustedfirmware-a.readthedocs.io/en/latest/getting_started/prerequisites.html.
+RUN apt-get install --assume-yes --no-install-recommends --option=debug::pkgProblemResolver=yes \
+		build-essential \
+		git \
+		device-tree-compiler
+
+# Install packages requried by TF-A Tests.
+# From https://trustedfirmware-a-tests.readthedocs.io/en/latest/getting_started/requirements.html.
+RUN apt-get install --assume-yes --no-install-recommends --option=debug::pkgProblemResolver=yes \
+		build-essential \
+		device-tree-compiler \
+		git \
+		libxml-libxml-perl \
+		perl
+
+# Install packages requried by Hafnium.
+# From https://review.trustedfirmware.org/plugins/gitiles/hafnium/hafnium/+/HEAD/docs/GettingStarted.md
+# plus extras until the build worked.
+RUN apt-get install --assume-yes --no-install-recommends --option=debug::pkgProblemResolver=yes \
+		bc \
+		bison \
+		cpio \
+		flex \
+		libssl-dev \
+		make \
+		python3 \
+		python3-pip \
+		python3-serial
+RUN pip3 install \
+		fdt
+
+# Install packages requried by EDK2.
+# From https://developer.arm.com/documentation/102571/0100/Build-firmware-on-a-Linux-host.
+RUN apt-get install --assume-yes --no-install-recommends --option=debug::pkgProblemResolver=yes \
+		bison \
+		build-essential \
+		flex \
+		python3 \
+		python3-distutils \
+		uuid-dev
+
+# TODO: Install any packages required by U-Boot, OP-TEE, Trusty, etc.
+
+# Install the aarch64-linux-gnu- toolchain. We use the stock Debian packages for
+# this. See below for the aarch64-none-elf- toolchain, which comes from
+# developer.arm.com.
+RUN apt-get install --assume-yes --no-install-recommends --option=debug::pkgProblemResolver=yes \
+		crossbuild-essential-arm64 \
+		libc6-dev-arm64-cross
+
+# All non-managed tools will be downloaded here.
+RUN mkdir /tools
+
+# Install aarch64 toolchain (aarch64-none-elf-). This is parameterized so the
+# caller can easily update the version and architecture for different builds, or
+# even omit it by providing the special name "none".
+ARG TCH_PKG_NAME_AARCH64
+ARG TCH_PATH_AARCH64
+COPY ${TCH_PKG_NAME_AARCH64} /tools/.
+RUN cd /tools \
+	&& if [ "${TCH_PKG_NAME_AARCH64}" != "none" ]; then \
+	    tar xf ${TCH_PKG_NAME_AARCH64}; \
+	fi \
+	&& rm ${TCH_PKG_NAME_AARCH64} \
+	&& cd -
+ENV TCH_PATH_AARCH64="/tools/${TCH_PATH_AARCH64}"
+ENV PATH="${TCH_PATH_AARCH64}:${PATH}"
+
+# Create a user.
+RUN useradd --create-home shrinkwrap
