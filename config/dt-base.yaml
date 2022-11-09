@@ -4,10 +4,12 @@
 %YAML 1.2
 ---
 description: >-
-  Builds the fvp-base-revc device tree from upstream linux kernel and exports
-  the dtb as an artifact called DTB. Optionally, dynamically adds a kernel
-  command line to the chosen node if any params are specified. Uses a slimmed
-  down mirror of the upstream repo to avoid having to sync all of linux.
+  Builds a device tree from upstream linux kernel and exports the dtb as an
+  artifact called DTB. By default, fvp-base-revc.dts is built, but the user can
+  override this by specifying its name in the DTS variable as part of a higher
+  layer's prebuild commands. Optionally, a kernel command line is dynamically
+  added to the chosen node if any params are specified. Uses a slimmed down
+  mirror of the upstream repo to avoid having to sync all of linux.
 
 build:
   dt:
@@ -18,26 +20,27 @@ build:
     toolchain: aarch64-none-elf-
 
     prebuild:
-      # This script dynamically adds kernel bootargs to the chosen node within
-      # the device tree before it gets compiled. It uses any defined key=value
-      # pairs from the `params` key. If none are defined (the default) the dts
-      # is compiled without modification.
-      - DTS_IN=${param:sourcedir}/src/arm64/arm/fvp-base-revc.dts
-      - DTS_OUT=${param:sourcedir}/src/arm64/arm/fvp-base-revc_args.dts
-      - if [ -z "${param:join_equal}" ]; then
-      -   cp $$DTS_IN $$DTS_OUT
-      - else
-      -   ESC_PARAMS=$$(printf '%s\n' "${param:join_equal}" | sed -e 's/[\/&]/\\&/g')
-      -   sed "s/chosen {.*};/chosen { bootargs = \"$$ESC_PARAMS\"; };/g" $$DTS_IN > $$DTS_OUT
-      - fi
+      # User can override DTS in prebuild step of higher layer.
+      - DTS=fvp-base-revc.dts
 
     build:
-      # This project doesn't support building in a separate build directory.
-      # This means we will always dirty the source tree.
-      - make CPP=$${CROSS_COMPILE}cpp -j${param:jobs} src/arm64/arm/fvp-base-revc_args.dtb
+      - DT_BASENAME=$$(basename $${DTS} .dts)
+      - DTB_INTER=src/arm64/arm/$${DT_BASENAME}.dtb
+      - DTB_FINAL=${param:builddir}/dt_bootargs.dtb
+
+      # This script compiles the selected dts then dynamically adds kernel
+      # bootargs to the chosen node. It uses any defined key=value pairs from
+      # the `params` key. If none are defined (the default) the dts is compiled
+      # without modification.
+      - make CPP=$${CROSS_COMPILE}cpp -j${param:jobs} $${DTB_INTER}
+      - if [ -z "${param:join_equal}" ]; then
+      -   cp $${DTB_INTER} $${DTB_FINAL}
+      - else
+      -   ( dtc -O dts -I dtb $${DTB_INTER} ; echo "/ { chosen { bootargs = \"${param:join_equal}\"; }; };" ) | dtc -O dtb -o $${DTB_FINAL}
+      - fi
 
     clean:
       - make CPP=$${CROSS_COMPILE}cpp -j${param:jobs} clean
 
     artifacts:
-      DTB: ${param:sourcedir}/src/arm64/arm/fvp-base-revc_args.dtb
+      DTB: ${param:builddir}/dt_bootargs.dtb
