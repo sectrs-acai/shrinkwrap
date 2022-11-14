@@ -16,3 +16,4 @@ User Guide
    runtimes
    commands
    config
+   recipes
