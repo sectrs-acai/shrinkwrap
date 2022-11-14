@@ -51,16 +51,14 @@ def main():
 		version=f'{tool_name} v{__version__}')
 
 	parser.add_argument('-R', '--runtime',
-		metavar='engine', required=False, default='null',
-		choices=['null', 'docker', 'docker-local', 'podman', 'podman-local'],
+		metavar='engine', required=False, default='docker',
+		choices=['null', 'docker', 'docker-local'],
 		help="""Specifies the environment in which to execute build and
 		     run commands. If 'null', executes natively on the host.
 		     'docker' attempts to download the image from dockerhub and
 		     execute the commands in a container. 'docker-local' is like
-		     'docker' but will only look for the image locally. 'podman'
-		     and 'podman-local' do the same as the docker equivalents
-		     but use podman as the container engine. Defaults to
-		     'null'.""")
+		     'docker' but will only look for the image locally. Defaults
+		     to 'docker'.""")
 
 	parser.add_argument('-I', '--image',
 		metavar='name',
@@ -73,7 +71,7 @@ def main():
 					   metavar='<command>',
 					   title=f'Supported commands (run '
 						 f'"{tool_name} <command> '
-						 f'--help" for more info')
+						 f'--help" for more info)')
 
 	# Register all the commands.
 	cmds = {}
