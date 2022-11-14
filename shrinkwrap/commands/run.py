@@ -101,7 +101,7 @@ def dispatch(args):
 
 	log = logger.Logger(name_field, not args.no_color)
 
-	def _strip_telnet_header(pm, proc, data):
+	def _strip_telnet_header(pm, proc, data, streamid):
 		"""
 		For any stdinout terminals (which use telnet), strip the first
 		few lines of output, which is output by telnet. This is
@@ -118,9 +118,9 @@ def dispatch(args):
 						for t in terminals.values()]):
 						pm.set_handler(log.log)
 			else:
-				log.log(pm, proc, line)
+				log.log(pm, proc, line, streamid)
 
-	def _find_term_ports(pm, proc, data):
+	def _find_term_ports(pm, proc, data, streamid):
 		"""
 		Initial handler function called by ProcessManager. When the fvp
 		starts, we must parse the output to determine the port numbers
@@ -130,7 +130,7 @@ def dispatch(args):
 		standard logger.
 		"""
 		# First, forward to the standard log handler.
-		log.log(pm, proc, data)
+		log.log(pm, proc, data, streamid)
 
 		found_all_ports = True
 

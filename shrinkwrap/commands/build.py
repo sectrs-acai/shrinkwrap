@@ -98,7 +98,7 @@ def dispatch(args):
 	configs = config.load_resolveb_all(args.configs, args.overlay, clivars)
 	if len(args.configs) == 0:
 		configs = [c for c in configs if c['concrete']]
-	graph = config.build_graph(configs)
+	graph = config.build_graph(configs, args.verbose)
 
 	if args.dry_run:
 		script = ugraph.make_script(graph)
@@ -143,7 +143,7 @@ def dispatch(args):
 				config.dump(c, cfg)
 
 			# Dump the script to build the config.
-			graph = config.build_graph([c])
+			graph = config.build_graph([c], args.verbose)
 			script = ugraph.make_script(graph)
 			build_name = os.path.join(workspace.package,
 						  c['name'],

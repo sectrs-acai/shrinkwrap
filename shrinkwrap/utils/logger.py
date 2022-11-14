@@ -36,7 +36,7 @@ class Logger:
 		color = _colors[idx]
 		return Data(tag, color)
 
-	def log(self, pm, proc, data):
+	def log(self, pm, proc, data, streamid):
 		"""
 		Logs text data from one of the processes (FVP or one of its uart
 		terminals) to the terminal. Text is colored and a tag is added

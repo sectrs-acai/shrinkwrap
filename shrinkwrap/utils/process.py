@@ -13,6 +13,10 @@ import shrinkwrap.utils.runtime as runtime
 import shrinkwrap.utils.tty as tty
 
 
+STDOUT = 0
+STDERR = 1
+
+
 class Process:
 	"""
 	A wrapper to a process that should be managed by the ProcessManager.
@@ -25,6 +29,8 @@ class Process:
 		self._popen = None
 		self._stdout = None
 		self._stdin = None
+		self._stderr = None
+		self._active = 0
 
 
 class ProcessManager:
@@ -83,13 +89,17 @@ class ProcessManager:
 
 	def _proc_handle(self, key, mask):
 		proc = key.data[1]
+		streamid = key.data[2]
 		data = key.fileobj.read()
 
 		if data == '':
-			self._proc_deactivate(proc)
+			assert(proc._active > 0)
+			proc._active -= 1
+			if proc._active == 0:
+				self._proc_deactivate(proc)
 		else:
 			if self._handler:
-				self._handler(self, proc, data)
+				self._handler(self, proc, data, streamid)
 
 	def _proc_activate(self, proc):
 		cmd = runtime.mkcmd(proc.args, proc.interactive)
@@ -105,17 +115,28 @@ class ProcessManager:
 			proc._stdin = io.open(master, 'wb', buffering=0)
 			proc._stdout = io.open(master, 'rb', -1, closefd=False)
 			proc._stdout = io.TextIOWrapper(proc._stdout)
+			# stdout and stderr get merged into pty, so can't tell
+			# them apart. This isn't a problem for the emit build
+			# warnings use case.
+			proc._stderr = None
+			proc._active = 1
 		else:
 			proc._popen = subprocess.Popen(cmd,
 						       stdin=subprocess.DEVNULL,
 						       stdout=subprocess.PIPE,
-						       stderr=subprocess.STDOUT,
+						       stderr=subprocess.PIPE,
 						       text=True)
 
 			proc._stdin = None
 			proc._stdout = proc._popen.stdout
+			proc._stderr = proc._popen.stderr
+			proc._active = 2
 
-		self._register(proc._stdout, (self._proc_handle, proc))
+		if proc._stdout:
+			self._register(proc._stdout, (self._proc_handle, proc, STDOUT))
+
+		if proc._stderr:
+			self._register(proc._stderr, (self._proc_handle, proc, STDERR))
 
 		if proc.run_to_end:
 			self._active += 1
@@ -127,7 +148,11 @@ class ProcessManager:
 		if proc.run_to_end:
 			self._active -= 1
 
-		self._sel.unregister(proc._stdout)
+		if proc._stdout:
+			self._sel.unregister(proc._stdout)
+
+		if proc._stderr:
+			self._sel.unregister(proc._stderr)
 
 		proc._popen.kill()
 		try:
@@ -145,6 +170,10 @@ class ProcessManager:
 		if proc._stdout:
 			proc._stdout.close()
 			proc._stdout = None
+
+		if proc._stderr:
+			proc._stderr.close()
+			proc._stderr = None
 
 		if self._terminate_handler:
 			self._terminate_handler(self, proc, retcode)

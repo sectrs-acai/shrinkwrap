@@ -37,8 +37,8 @@ class LabelController:
 	def __init__(self, labels=[], file=sys.stdout, overdraw=True):
 		self._labels = labels
 		self._file = file
-		self._overdraw = overdraw
-		self._first = True
+		self._overdraw = False
+		self._overdraw_usually = overdraw
 		self._update_pending = True
 		try:
 			term_sz = os.get_terminal_size(file.fileno())
@@ -62,7 +62,7 @@ class LabelController:
 		if not self._update_pending:
 			return
 
-		if not self._first and self._overdraw:
+		if self._overdraw:
 			line_count = 0
 			for l in self._labels:
 				line_count += self._line_count(l.text)
@@ -79,5 +79,8 @@ class LabelController:
 
 		self._file.flush()
 
-		self._first = False
+		self._overdraw = self._overdraw_usually
 		self._update_pending = False
+
+	def skip_overdraw_once(self):
+		self._overdraw = False

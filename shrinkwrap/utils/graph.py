@@ -103,7 +103,7 @@ def _run_script(pm, data, script):
 	# Start the process asynchronously.
 	pm.add(process.Process(f'bash {tmpfilename}',
 			       False,
-			       (data, script, tmpdir),
+			       (*data, script, tmpdir),
 			       True))
 
 
@@ -127,24 +127,27 @@ def execute(graph, tasks, verbose=False, colorize=True):
 				       frag.config,
 				       frag.component,
 				       frag.summary + '...')
-			data = log.alloc_data(str(frag)) if verbose else []
+			data = (log.alloc_data(str(frag)), [])
 			_run_script(pm, data, frag)
 			active += 1
 
-	def _log(pm, proc, data):
+	def _log(pm, proc, data, streamid):
 		if verbose:
-			log.log(pm, proc, data)
+			log.log(pm, proc, data, streamid)
 		else:
-			proc.data[0].append(data)
+			proc.data[1].append(data)
+			if streamid == process.STDERR:
+				log.log(pm, proc, data, streamid)
+				lc.skip_overdraw_once()
 
 	def _complete(pm, proc, retcode):
 		nonlocal queue
 		nonlocal active
 		nonlocal ts
 
-		data = proc.data[0]
-		frag = proc.data[1]
-		tmpdir = proc.data[2]
+		data = proc.data[1]
+		frag = proc.data[2]
+		tmpdir = proc.data[3]
 
 		shutil.rmtree(tmpdir)
 
@@ -155,7 +158,9 @@ def execute(graph, tasks, verbose=False, colorize=True):
 
 		if retcode:
 			if not verbose:
+				print('\n== error start ' + ('=' * 65))
 				print(''.join(data))
+				print('== error end ' + ('=' * 67) + '\n')
 			raise Exception(f"Failed to execute '{frag}'")
 
 		state = 'Done' if frag.final else 'Waiting...'

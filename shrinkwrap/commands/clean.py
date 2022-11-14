@@ -104,7 +104,7 @@ def dispatch(args):
 					conf['graph'],
 					args.filter)
 
-	graph = config.clean_graph(configs, args.deep)
+	graph = config.clean_graph(configs, args.verbose, args.deep)
 
 	if args.dry_run:
 		script = ugraph.make_script(graph)
