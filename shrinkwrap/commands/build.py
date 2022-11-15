@@ -26,18 +26,18 @@ def add_parser(parser, formatter):
 		help="""Builds either all concrete standard configs or an
 		     explicitly specified set of configs and packages them ready
 		     to run.""",
-		epilog="""The config store(s) are defined at at
+		epilog="""Custom config store(s) can be defined at at
 		     <SHRINKWRAP_CONFIG> as a colon-separated list of
 		     directories. Building is done at <SHRINKWRAP_BUILD> and
 		     output is saved to <SHRINKWRAP_PACKAGE>. The package
 		     includes all FW binaries, a manifest and a build.sh script
 		     containing all the commands that were executed per config.
 		     Any pre-existing config package directory is first deleted.
-		     <SHRINKWRAP_CONFIG> has no default and must be set by the
-		     user. <SHRINKWRAP_BUILD> and <SHRINKWRAP_PACKAGE> default
-		     to '~/.shrinkwrap/build' and '~/.shrinkwrap/package'. The
-		     user can override them by setting the environment
-		     variables.""")
+		     Shrinkwrap will always search its default config store even
+		     if <SHRINKWRAP_CONFIG> is not defined. <SHRINKWRAP_BUILD>
+		     and <SHRINKWRAP_PACKAGE> default to '~/.shrinkwrap/build'
+		     and '~/.shrinkwrap/package'. The user can override them by
+		     setting the environment variables.""")
 
 	cmdp.add_argument('configs',
 		metavar='config', nargs='*',
@@ -104,6 +104,9 @@ def dispatch(args):
 		script = ugraph.make_script(graph)
 		print(script)
 	else:
+		if args.verbose:
+			workspace.dump()
+
 		# Run under a runtime environment, which may just run commands
 		# natively on the host or may execute commands in a container,
 		# depending on what the user specified.

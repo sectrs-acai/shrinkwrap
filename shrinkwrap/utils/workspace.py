@@ -22,9 +22,17 @@ def configs():
 
 	if _configs is None:
 		value = os.environ.get('SHRINKWRAP_CONFIG')
-		if not value:
-			raise Exception('SHRINKWRAP_CONFIG environment variable not set.')
-		_configs = value.split(':')
+
+		# Set of paths that we will search for configs in, in priority
+		# order. Prefer any user-supplied paths, then fall back to
+		# ~/.shrinkwrap/config (which is the "installed" location of the
+		# standard config store), then fall back to the in-repo location
+		# for the uninstalled case. Then filter out any paths that don't
+		# exist.
+		paths = value.split(':') if value else []
+		paths += [os.path.realpath(os.path.join(_data_root, 'config'))]
+		paths += [os.path.realpath(os.path.join(_code_root, '../config'))]
+		_configs = [p for p in paths if os.path.exists(p)]
 
 	return _configs
 
@@ -34,3 +42,12 @@ def config(path, join=True):
 		if os.path.exists(p):
 			return config
 	return None
+
+def dump():
+	print(f'workspace.build:')
+	print(f'  {build}')
+	print(f'workspace.package:')
+	print(f'  {package}')
+	print(f'workspace.config:')
+	for path in configs():
+		print(f'  {path}')

@@ -110,6 +110,9 @@ def dispatch(args):
 		script = ugraph.make_script(graph)
 		print(script)
 	else:
+		if args.verbose:
+			workspace.dump()
+
 		# Run under a runtime environment, which may just run commands
 		# natively on the host or may execute commands in a container,
 		# depending on what the user specified.
