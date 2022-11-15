@@ -82,15 +82,22 @@ class ProcessManager:
 			self._sel.close()
 			self._sel = None
 
-	def _register(self, fileobj, data):
+	def _read_nonblock(self, fileobj):
+		# If stdin and stdout are both connected to a tty, setting stdin
+		# to nonblocking will also cause stdout to be set nonblocking
+		# and can cause errors when printing to stdout the output buffer
+		# is full. So work around that by only making fds nonblocking
+		# while we do the read.
 		fl = fcntl.fcntl(fileobj, fcntl.F_GETFL)
 		fcntl.fcntl(fileobj, fcntl.F_SETFL, fl | os.O_NONBLOCK)
-		self._sel.register(fileobj, selectors.EVENT_READ, data)
+		data = fileobj.read()
+		fcntl.fcntl(fileobj, fcntl.F_SETFL, fl)
+		return data
 
 	def _proc_handle(self, key, mask):
 		proc = key.data[1]
 		streamid = key.data[2]
-		data = key.fileobj.read()
+		data = self._read_nonblock(key.fileobj)
 
 		if data == '':
 			assert(proc._active > 0)
@@ -133,10 +140,14 @@ class ProcessManager:
 			proc._active = 2
 
 		if proc._stdout:
-			self._register(proc._stdout, (self._proc_handle, proc, STDOUT))
+			self._sel.register(proc._stdout,
+					   selectors.EVENT_READ,
+					   (self._proc_handle, proc, STDOUT))
 
 		if proc._stderr:
-			self._register(proc._stderr, (self._proc_handle, proc, STDERR))
+			self._sel.register(proc._stderr,
+					   selectors.EVENT_READ,
+					   (self._proc_handle, proc, STDERR))
 
 		if proc.run_to_end:
 			self._active += 1
@@ -179,7 +190,7 @@ class ProcessManager:
 			self._terminate_handler(self, proc, retcode)
 
 	def _stdin_handle(self, key, mask):
-		data = key.fileobj.read()
+		data = self._read_nonblock(key.fileobj)
 		for proc in self._procs:
 			if proc._stdin:
 				proc._stdin.write(data)
@@ -197,7 +208,9 @@ class ProcessManager:
 		self._tty_orig = tty.configure(sys.stdin)
 
 		# Register stdin so we get notified when there is data.
-		self._register(sys.stdin, (self._stdin_handle,))
+		self._sel.register(sys.stdin,
+				   selectors.EVENT_READ,
+				   (self._stdin_handle,))
 
 	def _stdin_deactivate(self):
 		# Unregister for notifications.
