@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MIT
 
 import subprocess
+import sys
 import tuxmake.runtime
 
 
@@ -22,8 +23,15 @@ class Runtime:
 
 		self._rt = tuxmake.runtime.Runtime.get(name)
 		self._rt.set_image(image)
-		self._rt.set_user('shrinkwrap')
-		self._rt.set_group('shrinkwrap')
+		if not sys.platform.startswith('darwin'):
+			# Macos uses GIDs that overlap with already defined GIDs
+			# in the container so this fails. However, it appears
+			# that on macos, if we run as root in the container, any
+			# generated files on the host filesystem are still owned
+			# my the real macos user, so it seems we don't need this
+			# UID/GID fixup in the first place on macos.
+			self._rt.set_user('shrinkwrap')
+			self._rt.set_group('shrinkwrap')
 
 		if self._modal:
 			_stack.append(self)

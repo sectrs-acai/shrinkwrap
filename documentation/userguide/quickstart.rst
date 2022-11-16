@@ -15,7 +15,8 @@ Packages don't yet exist, so currently the only way to install Shrinkwrap is to
 install its dependencies and clone the git repository.
 
 Shrinkwrap is tested on **Ubuntu 20.04** although other Linux distributions are
-likely to JustWork (TM).
+likely to JustWork (TM). macOS is also known to work when using the docker
+runtime as long as Docker Desktop has first been installed.
 
 Shrinkwrap requires **at least Python 3.7** (for ordered dicts). Older versions
 may work, but are not tested.
