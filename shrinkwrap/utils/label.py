@@ -45,7 +45,7 @@ class LabelController:
 			self._term_lines = term_sz.lines
 			self._term_cols = term_sz.columns
 		except OSError:
-			self._overdraw = False
+			self._overdraw_usually = False
 
 		for label in self._labels:
 			label._lc = self
@@ -69,7 +69,7 @@ class LabelController:
 			self._move_up(line_count)
 
 		for l in self._labels:
-			if self._overdraw or l.text != l._prev_text:
+			if self._overdraw_usually or l.text != l._prev_text:
 				cc = len(l.text)
 				pcc = len(l._prev_text)
 				self._file.write(l.text)
