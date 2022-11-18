@@ -22,6 +22,9 @@ build:
     prebuild:
       # User can override DTS in prebuild step of higher layer.
       - DTS=fvp-base-revc.dts
+      # User can override these to define an initrd in memory.
+      - INITRD_START=
+      - INITRD_END=
 
     build:
       - DT_BASENAME=$$(basename $${DTS} .dts)
@@ -31,12 +34,25 @@ build:
       # This script compiles the selected dts then dynamically adds kernel
       # bootargs to the chosen node. It uses any defined key=value pairs from
       # the `params` key. If none are defined (the default) the dts is compiled
-      # without modification.
+      # without a command line. If an initrd location is provided, it is also
+      # added to the chosen node.
       - make CPP=$${CROSS_COMPILE}cpp -j${param:jobs} $${DTB_INTER}
-      - if [ -z "${param:join_equal}" ]; then
+      - CHOSEN=
+      - if [ ! -z "${param:join_equal}" ]; then
+      -   CHOSEN="$${CHOSEN}bootargs = \"${param:join_equal}\";\n"
+      - fi
+      - if [ ! -z "$${INITRD_START}" ] && [ ! -z "$${INITRD_END}" ]; then
+      -   INITRD_START_HI=$$((($${INITRD_START} >> 32) & 0xffffffff))
+      -   INITRD_START_LO=$$(($${INITRD_START} & 0xffffffff))
+      -   INITRD_END_HI=$$((($${INITRD_END} >> 32) & 0xffffffff))
+      -   INITRD_END_LO=$$(($${INITRD_END} & 0xffffffff))
+      -   CHOSEN="$${CHOSEN}linux,initrd-start = <$${INITRD_START_HI} $${INITRD_START_LO}>;\n"
+      -   CHOSEN="$${CHOSEN}linux,initrd-end = <$${INITRD_END_HI} $${INITRD_END_LO}>;\n"
+      - fi
+      - if [ -z "$${CHOSEN}" ]; then
       -   cp $${DTB_INTER} $${DTB_FINAL}
       - else
-      -   ( dtc -O dts -I dtb $${DTB_INTER} ; echo "/ { chosen { bootargs = \"${param:join_equal}\"; }; };" ) | dtc -O dtb -o $${DTB_FINAL}
+      -   ( dtc -O dts -I dtb $${DTB_INTER} ; echo -e "/ { chosen { $${CHOSEN} }; };" ) | dtc -O dtb -o $${DTB_FINAL}
       - fi
 
     clean:
