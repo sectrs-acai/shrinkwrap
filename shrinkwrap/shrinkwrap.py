@@ -23,6 +23,19 @@ from shrinkwrap.commands import process
 from shrinkwrap.commands import run
 
 
+VERBOSE = True
+
+
+def config_verbose_flag(args):
+	global VERBOSE
+	# Not all commands (e.g. run) have --verbose. Choose not to change
+	# behavior in that case.
+	if 'verbose' in args:
+		VERBOSE = args.verbose
+	else:
+		VERBOSE = False
+
+
 def formatter(prog):
 	width = shutil.get_terminal_size().columns
 	width -= 2
@@ -83,6 +96,7 @@ def main():
 
 	# Parse the arguments.
 	args = parser.parse_args()
+	config_verbose_flag(args)
 
 	# Dispatch to the correct command.
 	if args.command in cmds:
@@ -96,7 +110,9 @@ if __name__ == "__main__":
 	try:
 		main()
 	except SystemExit as e:
-		raise e
+		raise
 	except BaseException as e:
+		if VERBOSE:
+			raise
 		print(f'{e.__class__.__name__}: {e}')
 		exit(1)
