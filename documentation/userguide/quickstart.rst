@@ -25,7 +25,7 @@ may work, but are not tested.
 
   sudo apt-get install docker.io git netcat-openbsd python3 python3-pip telnet
   sudo pip3 install pyyaml termcolor tuxmake
-  git clone git@git.gitlab.oss.arm.com:engineering/linux-arm/shrinkwrap.git
+  git clone https://git.gitlab.arm.com/tooling/shrinkwrap.git
   export PATH=$PWD/shrinkwrap/shrinkwrap:$PATH
 
 If Docker was not previously set up on your system, you will need to create a
