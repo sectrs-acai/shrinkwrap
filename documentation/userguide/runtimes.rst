@@ -42,7 +42,8 @@ Docker Image Variants
 Shrinkwrap runs on both x86_64 and aarch64 architectures, and provides multiarch
 container images so that the correct variant is automatically selected for your
 platform. Images are automatically downloaded by shrinkwrap when the ``docker``
-runtime is selected.
+runtime is selected. Images are available on Docker Hub and can be freely
+downloaded without the need for an account.
 
 .. warning::
 
@@ -52,12 +53,14 @@ runtime is selected.
   your own FVP on your system and follow the recipe at
   :ref:`userguide/recipes:Use a Custom FVP Version`.
 
-====================================================================== ====
-image name                                                             description
-====================================================================== ====
-oss-kernel--docker.artifactory.geo.arm.com/shrinkwrap/base-slim:latest (default). Contains all toolchains, FVPs and other dependencies required to build and run all standard configs. This is suffcient for most use cases and is much smaller.
-oss-kernel--docker.artifactory.geo.arm.com/shrinkwrap/base-full:latest Builds upon ``shrinkwraptool/base-slim:latest``, adding aarch32 toolchains (both arm-none-eabi and arm-linux-gnueabihf). These are not needed for standard configs, but will be required if creating a custom config that includes (e.g.) SCP FW. Separated out due to big size increase.
-====================================================================== ====
+===================================== ====
+image name                            description
+===================================== ====
+shrinkwraptool/base-slim-nofvp:latest Contains all toolchains and other dependencies required to build all standard configs. Can be used as a base to create an image with a custom FVP.
+shrinkwraptool/base-slim:latest       (default). As per ``shrinkwraptool/base-slim-nofvp:latest`` but also contains the Base_RevC-2xAEMvA FVP. This is suffcient for most use cases and is much smaller than the ``full`` variant.
+shrinkwraptool/base-full-nofvp:latest Builds upon ``shrinkwraptool/base-slim:latest``, adding aarch32 toolchains (both arm-none-eabi and arm-linux-gnueabihf). These are not needed for standard configs, but will be required if creating a custom config that includes (e.g.) SCP FW. Separated out due to big size increase.
+shrinkwraptool/base-full:latest       As per ``shrinkwraptool/base-full-nofvp:latest`` but also contains the Base_RevC-2xAEMvA FVP.
+===================================== ====
 
 ********************
 Runtime Requirements
@@ -66,39 +69,6 @@ Runtime Requirements
 The best way to understand the requirements for the packages available within
 the runtime is to look at the dockerfiles for the official shrinkwrap images.
 These are available at ``docker/Dockerfile.*``.
-
-***********************************
-Log into Arm Artifactory Repository
-***********************************
-
-The official shrinkwrap docker images are stored in Arm's Artifactory
-repository. shrinkwrap will look here for the default image, but will fail
-unless you have previously logged your local docker instance into the
-repository. This is a one-time operation.
-
-.. note::
-
-  Only Arm employees are able to access this repository. If you are not an Arm
-  employee, you will need to build the image locally on your system. (See
-  below).
-
-First, create an **identity token** using the Artifactory UI:
-
-- Goto https://artifactory.geo.arm.com
-- Log in by pressing the "Azure" button
-- In the top-right drop down menu, select "Edit Profile"
-- Click "Generate Identity Token"
-- Enter a description (e.g. "shrinkwrap")
-- Click "Next"
-- Copy the "Reference Token"
-
-Now perform the login on your local system:
-
-.. code-block:: shell
-
-  docker login -u <arm email address> -p <reference token> oss-kernel--docker.artifactory.geo.arm.com
-
-You are now logged in and able to pull shrinkwrap images.
 
 *****************************
 Build Container Image Locally
@@ -112,17 +82,22 @@ you can do it as follows:
   cd docker
   ./build.sh local
 
-This will build an image called
-``oss-kernel--docker.artifactory.geo.arm.com/shrinkwrap/base-slim-<ARCH>``
-with the tag ``local``. To use the locally built image, call shrinkwrap as
-follows if running on an x86_64 system:
+This will build a set of images called:
+
+- ``shrinkwraptool/base-slim:local-<ARCH>``
+- ``shrinkwraptool/base-slim-nofvp:local-<ARCH>``
+- ``shrinkwraptool/base-full:local-<ARCH>``
+- ``shrinkwraptool/base-full-nofvp:local-<ARCH>``
+
+To use a locally built image, call shrinkwrap as follows if running on an x86_64
+system:
 
 .. code-block:: shell
 
-  shrinkwrap --runtime=<name> --image=oss-kernel--docker.artifactory.geo.arm.com/shrinkwrap/base-slim-x86_64:local ...
+  shrinkwrap --runtime=<name> --image=shrinkwraptool/base-slim:local-x86_64 ...
 
 Or like this if running on an aarch64 system:
 
 .. code-block:: shell
 
-  shrinkwrap --runtime=<name> --image=oss-kernel--docker.artifactory.geo.arm.com/shrinkwrap/base-slim-aarch64:local ...
+  shrinkwrap --runtime=<name> --image=shrinkwraptool/base-slim:local-aarch64 ...

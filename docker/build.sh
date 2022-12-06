@@ -27,7 +27,7 @@ if [ "$#" -ne 1 ]; then
 fi
 VERSION="${1}"
 ARCH=$(uname -p)
-REGISTRY=oss-kernel--docker.artifactory.geo.arm.com/shrinkwrap
+REGISTRY=shrinkwraptool
 
 # Configure the arch-specific variables which are passed to the Dockerfile.
 if [ "${ARCH}" == "x86_64" ]; then
@@ -69,30 +69,30 @@ docker build \
 	--build-arg=TCH_PKG_NAME_AARCH64=${TCH_PKG_NAME_AARCH64} \
 	--build-arg=TCH_PATH_AARCH64=${TCH_PATH_AARCH64} \
 	--file=Dockerfile.slim \
-	--tag=${REGISTRY}/base-slim-nofvp-${ARCH}:${VERSION} \
+	--tag=${REGISTRY}/base-slim-nofvp:${VERSION}-${ARCH} \
 	.
 docker build \
-	--build-arg=BASE=${REGISTRY}/base-slim-nofvp-${ARCH}:${VERSION} \
+	--build-arg=BASE=${REGISTRY}/base-slim-nofvp:${VERSION}-${ARCH} \
 	--build-arg=FVP_PKG_NAME=${FVP_PKG_NAME} \
 	--build-arg=FVP_MODEL_DIR=${FVP_MODEL_DIR} \
 	--build-arg=FVP_PLUGIN_DIR=${FVP_PLUGIN_DIR} \
 	--file=Dockerfile.fvp \
-	--tag=${REGISTRY}/base-slim-${ARCH}:${VERSION} \
+	--tag=${REGISTRY}/base-slim:${VERSION}-${ARCH} \
 	.
 docker build \
-	--build-arg=BASE=${REGISTRY}/base-slim-nofvp-${ARCH}:${VERSION} \
+	--build-arg=BASE=${REGISTRY}/base-slim-nofvp:${VERSION}-${ARCH} \
 	--build-arg=TCH_PKG_NAME_AARCH32=${TCH_PKG_NAME_AARCH32} \
 	--build-arg=TCH_PATH_AARCH32=${TCH_PATH_AARCH32} \
 	--file=Dockerfile.full \
-	--tag=${REGISTRY}/base-full-nofvp-${ARCH}:${VERSION} \
+	--tag=${REGISTRY}/base-full-nofvp:${VERSION}-${ARCH} \
 	.
 docker build \
-	--build-arg=BASE=${REGISTRY}/base-full-nofvp-${ARCH}:${VERSION} \
+	--build-arg=BASE=${REGISTRY}/base-full-nofvp:${VERSION}-${ARCH} \
 	--build-arg=FVP_PKG_NAME=${FVP_PKG_NAME} \
 	--build-arg=FVP_MODEL_DIR=${FVP_MODEL_DIR} \
 	--build-arg=FVP_PLUGIN_DIR=${FVP_PLUGIN_DIR} \
 	--file=Dockerfile.fvp \
-	--tag=${REGISTRY}/base-full-${ARCH}:${VERSION} \
+	--tag=${REGISTRY}/base-full:${VERSION}-${ARCH} \
 	.
 rm -rf ${TCH_PKG_NAME_AARCH64} > /dev/null 2>&1 || true
 rm -rf ${TCH_PKG_NAME_AARCH32} > /dev/null 2>&1 || true
@@ -100,8 +100,8 @@ rm -rf ${FVP_PKG_NAME} > /dev/null 2>&1 || true
 
 # If not a local version, publish the image.
 if [ "${VERSION}" != "local" ]; then
-	docker push ${REGISTRY}/base-slim-nofvp-${ARCH}:${VERSION}
-	docker push ${REGISTRY}/base-slim-${ARCH}:${VERSION}
-	docker push ${REGISTRY}/base-full-nofvp-${ARCH}:${VERSION}
-	docker push ${REGISTRY}/base-full-${ARCH}:${VERSION}
+	docker push ${REGISTRY}/base-slim-nofvp:${VERSION}-${ARCH}
+	docker push ${REGISTRY}/base-slim:${VERSION}-${ARCH}
+	docker push ${REGISTRY}/base-full-nofvp:${VERSION}-${ARCH}
+	docker push ${REGISTRY}/base-full:${VERSION}-${ARCH}
 fi

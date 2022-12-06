@@ -66,13 +66,12 @@ kernel. This example uses EDK2 (UEFI) but many other options are available.
 
 .. note::
 
-  Before executing the below commands, you must log your local docker install
-  into Arm's Artifactory repository. See :ref:`userguide/runtimes:Log into Arm
-  Artifactory Repository` for instructions.
-
-  Alternatively, you can choose to run with the ``null`` runtime by providing
-  --runtime=null. This will cause all commands to be executed on the native
-  system. Users are responsible for setting up the environment in this case.
+  By default, the below commands will automatically download and use the
+  appropriate container image from Docker Hub. Alternatively, you can choose to
+  run with the ``null`` runtime by providing ``--runtime=null`` (between
+  ``shrinkwrap`` and the sub-command). This will cause all commands to be
+  executed on the native system. Users are responsible for setting up the
+  environment in this case.
 
 First invoke the tool to view help:
 
