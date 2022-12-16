@@ -50,7 +50,7 @@ def print_result(r):
 	def report(status, type, config, overlay):
 		desc = f'{status.upper()}: {type}: {config},{overlay}'
 		count = (1, 0) if status == 'pass' else (0, 1)
-		return *count, desc
+		return count[0], count[1], desc
 
 	if r['type'] == 'build':
 		configs = r['configs']

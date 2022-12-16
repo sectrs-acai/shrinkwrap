@@ -18,8 +18,8 @@ Shrinkwrap is tested on **Ubuntu 20.04** although other Linux distributions are
 likely to JustWork (TM). macOS is also known to work when using the docker
 runtime as long as Docker Desktop has first been installed.
 
-Shrinkwrap requires **at least Python 3.7** (for ordered dicts). Older versions
-may work, but are not tested.
+Shrinkwrap requires **at least Python 3.6.9**. Older versions may work, but are
+not tested.
 
 .. code-block:: shell
 

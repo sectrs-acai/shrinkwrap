@@ -132,7 +132,7 @@ class ProcessManager:
 						       stdin=subprocess.DEVNULL,
 						       stdout=subprocess.PIPE,
 						       stderr=subprocess.PIPE,
-						       text=True)
+						       universal_newlines=True)
 
 			proc._stdin = None
 			proc._stdout = proc._popen.stdout
