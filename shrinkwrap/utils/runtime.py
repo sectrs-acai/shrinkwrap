@@ -65,7 +65,10 @@ print(ip)
 """.replace('\n', '\\n').replace('\t', '\\t')
 
 		cmd = ['python3', '-c', f'exec("{script}")']
-		res = subprocess.run(self.mkcmd(cmd), text=True, capture_output=True)
+		res = subprocess.run(self.mkcmd(cmd),
+				     universal_newlines=True,
+				     stdout=subprocess.PIPE,
+				     stderr=subprocess.PIPE)
 		if res.returncode == 0:
 			return res.stdout.strip()
 		return '127.0.0.1'
