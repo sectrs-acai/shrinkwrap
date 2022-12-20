@@ -159,13 +159,15 @@ def run_config_bootwrap(config, bootwrap, rootfs, overlay=None, runtime=120):
 	run_config(config, overlay, f'{bootwrap} {rootfs}', runtime)
 
 
-def do_main():
-	for arch in ARCHES:
+def do_main(smoke_test):
+	arches = [ARCHES[-1]] if smoke_test else ARCHES
+
+	for arch in arches:
 		build_configs(CONFIGS, arch)
 		for config in CONFIGS:
 			run_config_kern(config, KERNEL, ROOTFS, arch)
 
-	for arch in ARCHES:
+	for arch in arches:
 		build_configs(['bootwrapper.yaml'], arch)
 		run_config_bootwrap('bootwrapper.yaml', BOOTWRAPPER, ROOTFS, arch)
 
@@ -192,6 +194,10 @@ def main():
 		help="""If using a container runtime, specifies the name of the
 		     image to use. Defaults to the official shrinkwrap image.""")
 
+	parser.add_argument('-s', '--smoke-test',
+		required=False, default=False, action='store_true',
+		help="""If specified, run a smaller selection of tests.""")
+
 	args = parser.parse_args()
 
 	global RUNTIME
@@ -199,7 +205,7 @@ def main():
 	RUNTIME = args.runtime
 	IMAGE = args.image
 
-	do_main()
+	do_main(args.smoke_test)
 
 
 if __name__ == "__main__":
