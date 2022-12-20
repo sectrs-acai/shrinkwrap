@@ -13,13 +13,13 @@ build:
     repo:
       edk2:
         remote: https://github.com/tianocore/edk2.git
-        revision: edk2-stable202208
+        revision: edk2-stable202211
       edk2-platforms:
         remote: https://github.com/tianocore/edk2-platforms.git
-        revision: ad00518399fc624688d434321693439062c39bde
+        revision: 20e07099d8f11889d101dd710ca85001be20e179
       acpica:
         remote: https://github.com/acpica/acpica.git
-        revision: R03_31_22
+        revision: R10_20_22
 
     toolchain: aarch64-none-elf-
 
