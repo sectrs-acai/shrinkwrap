@@ -221,15 +221,15 @@ Add the following to a higher layer of the config:
 Note that dt-base.yaml only accepts names of dts files that already exist in the
 device tree repo.
 
-***********************************************
-Accessing the FVP over Nework when using Docker
-***********************************************
+*******************************************************
+Accessing the FVP over Network when using Docker/Podman
+*******************************************************
 
-When using the docker runtime, the FVP runs inside a container. This has a
-different IP address to the host system. Shrinkwrap helpfully prints out the
-runtime environment's IP address when starting the FVP. This is the IP address
-you need to use to (e.g.) connect the debugger or to SSH into the hosted Linux
-system.
+When using the docker or podman runtimes, the FVP runs inside a container. This
+has a different IP address to the host system. Shrinkwrap helpfully prints out
+the runtime environment's IP address when starting the FVP. This is the IP
+address you need to use to (e.g.) connect the debugger or to SSH into the hosted
+Linux system.
 
 ******************************************
 Example Linux Feature Development Use Case

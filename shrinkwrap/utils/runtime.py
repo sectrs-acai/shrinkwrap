@@ -1,6 +1,7 @@
 # Copyright (c) 2022, Arm Limited.
 # SPDX-License-Identifier: MIT
 
+import os
 import subprocess
 import sys
 import tuxmake.runtime
@@ -20,6 +21,7 @@ class Runtime:
 	def __init__(self, name, image=None, modal=True):
 		self._modal = modal
 		self._rt = None
+		self._mountpoints = set()
 
 		self._rt = tuxmake.runtime.Runtime.get(name)
 		self._rt.set_image(image)
@@ -37,10 +39,37 @@ class Runtime:
 			_stack.append(self)
 
 	def start(self):
+		for mp in self._mountpoints:
+			self._rt.add_volume(mp)
+
 		self._rt.prepare()
 
-	def add_volume(self, src, dst=None):
-		self._rt.add_volume(src, dst)
+	def add_volume(self, src):
+		# Podman can't deal with duplicate mount points, so filter out
+		# duplicates here, including mount-points that are children of
+		# other mount points. Then defer registering the actual final
+		# volumes until start() time.
+
+		if not src:
+			return
+
+		mountpoints = set()
+
+		for mp in self._mountpoints:
+			common = os.path.commonpath([src, mp])
+			if common == mp:
+				# mp is parent (or duplicate) of src, so src
+				# already covered.
+				return
+			elif common != src:
+				# src is not a parent of mp. So include mp in
+				# filtered set of mount points.
+				mountpoints.add(mp)
+
+		# If we got here, then src is a unique mountpoint. Add it, and
+		# commit the filtered set.
+		mountpoints.add(src)
+		self._mountpoints = mountpoints
 
 	def mkcmd(self, cmd, interactive=False):
 		return self._rt.get_command_line(cmd, interactive, False)
