@@ -113,7 +113,7 @@ def execute(graph, tasks, verbose=False, colorize=True):
 
 	queue = []
 	active = 0
-	log = logger.Logger(20, colorize)
+	log = logger.Logger(27, colorize)
 	ts = graphlib.TopologicalSorter(graph)
 
 	def _pump(pm):
