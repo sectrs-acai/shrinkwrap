@@ -10,7 +10,7 @@ build:
   hafnium:
     repo:
       remote: https://git.trustedfirmware.org/hafnium/hafnium.git
-      revision: v2.7
+      revision: v2.8
 
     toolchain: aarch64-none-elf-
 

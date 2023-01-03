@@ -16,7 +16,7 @@ build:
   linux:
     repo:
       remote: git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
-      revision: v6.0
+      revision: v6.1
 
     toolchain: aarch64-none-elf-
 
