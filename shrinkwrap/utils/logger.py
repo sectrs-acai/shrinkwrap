@@ -7,7 +7,7 @@ import re
 termcolor = None
 
 _ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
-_colors = ['blue', 'cyan', 'green', 'yellow', 'magenta', 'grey', 'red']
+_colors = ['blue', 'cyan', 'green', 'yellow', 'magenta', 'grey']
 Data = namedtuple("Data", "tag color")
 
 
