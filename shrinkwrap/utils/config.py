@@ -724,6 +724,7 @@ def build_graph(configs, echo):
 	build all the configs.
 	"""
 	graph = {}
+	gitargs = '' if echo else '--quiet '
 
 	pre = script_preamble(echo)
 
@@ -783,10 +784,10 @@ def build_graph(configs, echo):
 						g.append(f'\trm -rf {gitlocal} > /dev/null 2>&1 || true')
 						g.append(f'\tmkdir -p {basedir}')
 						g.append(f'\ttouch {sync}')
-						g.append(f'\tgit clone {gitremote} {gitlocal}')
+						g.append(f'\tgit clone {gitargs}{gitremote} {gitlocal}')
 						g.append(f'\tpushd {gitlocal}')
-						g.append(f'\tgit checkout --force {gitrev}')
-						g.append(f'\tgit submodule update --init --checkout --recursive --force')
+						g.append(f'\tgit checkout {gitargs}--force {gitrev}')
+						g.append(f'\tgit submodule {gitargs}update --init --checkout --recursive --force')
 						g.append(f'\tpopd')
 						g.append(f'\trm {sync}')
 						g.append(f'fi')
@@ -835,6 +836,7 @@ def clean_graph(configs, echo, clean_repo):
 	clean all the configs.
 	"""
 	graph = {}
+	gitargs = '' if echo else '--quiet '
 
 	pre = script_preamble(echo)
 
@@ -882,8 +884,8 @@ def clean_graph(configs, echo, clean_repo):
 
 							g.append(f'\tif [ -d "{gitlocal}/.git" ] && [ ! -f "{sync}" ]; then')
 							g.append(f'\t\tpushd {gitlocal}')
-							g.append(f'\t\tgit clean -xdff')
-							g.append(f'\t\tgit reset --hard')
+							g.append(f'\t\tgit clean {gitargs}-xdff')
+							g.append(f'\t\tgit reset {gitargs}--hard')
 							g.append(f'\t\tpopd')
 							g.append(f'\tfi')
 

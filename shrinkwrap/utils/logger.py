@@ -7,8 +7,19 @@ import re
 termcolor = None
 
 _ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
-_colors = ['blue', 'cyan', 'green', 'yellow', 'magenta', 'grey', 'red']
+_colors = ['blue', 'cyan', 'green', 'yellow', 'magenta']
 Data = namedtuple("Data", "tag color")
+
+
+def splitlines(string):
+	"""
+	Like str.splitlines(True) but preserves '\r'.
+	"""
+	lines = string.split('\n')
+	keepends = [l + '\n' for l in lines[:-1]]
+	if lines[-1] != '':
+		keepends.append(lines[-1])
+	return keepends
 
 
 class Logger:
@@ -43,7 +54,9 @@ class Logger:
 		on the left to identify the originating process.
 		"""
 		# Remove any ansi escape sequences since we are just outputting
-		# text to stdout.
+		# text to stdout. This defends against EDK2's agregious use of
+		# screen clearing. But it does have the side effect that
+		# legitimate shell usage can get a bit wonky.
 		data = _ansi_escape.sub('', data)
 		if len(data) == 0:
 			return
@@ -56,7 +69,7 @@ class Logger:
 			tag = tag[:self._tag_size-3] + '...'
 		tag = f'{{:>{self._tag_size}}}'.format(tag)
 
-		lines = data.splitlines(keepends=True)
+		lines = splitlines(data)
 		start = 0
 
 		# If the cursor is not at the start of a new line, then if the
@@ -66,20 +79,30 @@ class Logger:
 		# newline and add a tag for the new owner.
 		if self._prev_char != '\n':
 			if self._prev_tag == tag:
-				self.print(f'{lines[0]}', color, end='')
+				self.print(lines[0], tag, True, color, end='')
 				start = 1
 			else:
-				print(f'\n', end='')
+				self.print('\n', tag, True, color, end='')
 
 		for line in lines[start:]:
-			self.print(f'[ {tag} ] {line}', color, end='')
+			self.print(line, tag, False, color, end='')
 
 		self._prev_tag = tag
 		self._prev_char = lines[-1][-1]
 
 		sys.stdout.flush()
 
-	def print(self, text, color=None, on_color=None, attrs=None, **kwargs):
+	def print(self, text, tag, cont, color=None, on_color=None, attrs=None, **kwargs):
+		# Ensure that any '\r's only rewind to the end of the tag.
+		tag = f'[ {tag} ] '
+		text = text.replace('\r', f'\r{tag}')
+
+		if not cont:
+			self._print(tag, color, on_color, attrs, end='')
+
+		self._print(text, color, on_color, attrs, **kwargs)
+
+	def _print(self, text, color=None, on_color=None, attrs=None, **kwargs):
 		if self._colorize:
 			text = termcolor.colored(text, color, on_color, attrs)
 		print(text, **kwargs)

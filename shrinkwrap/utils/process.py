@@ -121,7 +121,11 @@ class ProcessManager:
 
 			proc._stdin = io.open(master, 'wb', buffering=0)
 			proc._stdout = io.open(master, 'rb', -1, closefd=False)
-			proc._stdout = io.TextIOWrapper(proc._stdout)
+			# Don't attempt to translate newlines. We need the '\r's
+			# to correctly return the carriage for interactive
+			# terminals. Telnet sometimes gives '\r\r\n' too, which
+			# would be incorrectly translated to '\n\n'.
+			proc._stdout = io.TextIOWrapper(proc._stdout, newline='')
 			# stdout and stderr get merged into pty, so can't tell
 			# them apart. This isn't a problem for the emit build
 			# warnings use case.

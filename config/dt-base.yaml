@@ -52,7 +52,7 @@ build:
       - if [ -z "$${CHOSEN}" ]; then
       -   cp $${DTB_INTER} $${DTB_FINAL}
       - else
-      -   ( dtc -O dts -I dtb $${DTB_INTER} ; echo -e "/ { chosen { $${CHOSEN} }; };" ) | dtc -O dtb -o $${DTB_FINAL}
+      -   ( dtc -q -O dts -I dtb $${DTB_INTER} ; echo -e "/ { chosen { $${CHOSEN} }; };" ) | dtc -q -O dtb -o $${DTB_FINAL}
       - fi
 
     clean:
