@@ -107,12 +107,13 @@ def dispatch(args):
 		few lines of output, which is output by telnet. This is
 		confusing for users since telnet is an implementation detail.
 		"""
-		match = "Escape character is '^]'.\n"
+
+		match = "Escape character is '^]'."
 		pdata = proc.data
 
-		for line in data.splitlines(keepends=True):
+		for line in logger.splitlines(data):
 			if len(pdata) >= 2 and terminals[pdata[1]]['strip']:
-				if line == match:
+				if line.find(match) >= 0:
 					terminals[pdata[1]]['strip'] = False
 					if all([not t['strip'] \
 						for t in terminals.values()]):
