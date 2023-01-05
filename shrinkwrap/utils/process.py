@@ -100,13 +100,9 @@ class ProcessManager:
 		data = self._read_nonblock(key.fileobj)
 
 		if data == '':
-			assert(proc._active > 0)
-			proc._active -= 1
-			if proc._active == 0:
-				self._proc_deactivate(proc)
-		else:
-			if self._handler:
-				self._handler(self, proc, data, streamid)
+			self._proc_stream_deactivate(proc, key.fileobj, streamid)
+		elif self._handler:
+			self._handler(self, proc, data, streamid)
 
 	def _proc_activate(self, proc):
 		cmd = runtime.mkcmd(proc.args, proc.interactive)
@@ -156,39 +152,41 @@ class ProcessManager:
 		if proc.run_to_end:
 			self._active += 1
 
-	def _proc_deactivate(self, proc, force=False):
+	def _proc_stream_deactivate(self, proc, stream, streamid, force=False):
+		if not stream:
+			return
+
+		self._sel.unregister(stream)
+
+		if streamid == STDOUT:
+			proc._stdout = None
+		if streamid == STDERR:
+			proc._stderr = None
+
+		assert(proc._active > 0)
+		proc._active -= 1
+
+		if not force and proc._active == 0:
+			self._proc_deactivate(proc, force)
+
+	def _proc_deactivate(self, proc, force):
 		if not proc._popen:
 			return
 
 		if proc.run_to_end:
 			self._active -= 1
 
-		if proc._stdout:
-			self._sel.unregister(proc._stdout)
-
-		if proc._stderr:
-			self._sel.unregister(proc._stderr)
+		proc._stdin = None
+		self._proc_stream_deactivate(proc, proc._stdout, STDOUT, force)
+		self._proc_stream_deactivate(proc, proc._stderr, STDERR, force)
 
 		proc._popen.kill()
 		try:
 			proc._popen.communicate()
 		except:
 			pass
-		proc._popen.__exit__(None, None, None)
 		retcode = None if force else proc._popen.poll()
 		proc._popen = None
-
-		if proc._stdin:
-			proc._stdin.close()
-			proc._stdin = None
-
-		if proc._stdout:
-			proc._stdout.close()
-			proc._stdout = None
-
-		if proc._stderr:
-			proc._stderr.close()
-			proc._stderr = None
 
 		if self._terminate_handler:
 			self._terminate_handler(self, proc, retcode)
