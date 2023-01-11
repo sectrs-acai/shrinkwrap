@@ -23,21 +23,10 @@ not tested.
 
 .. code-block:: shell
 
-  sudo apt-get install docker.io git netcat-openbsd python3 python3-pip telnet
+  sudo apt-get install git netcat-openbsd python3 python3-pip telnet
   sudo pip3 install pyyaml termcolor tuxmake
   git clone https://git.gitlab.arm.com/tooling/shrinkwrap.git
   export PATH=$PWD/shrinkwrap/shrinkwrap:$PATH
-
-If Docker was not previously set up on your system, you will need to create a
-'docker' group and add your user to it. This allows shrinkwrap to interact with
-docker without needing sudo. For more information see `docker linux-postinstall
-<https://docs.docker.com/engine/install/linux-postinstall/>`_.
-
-.. code-block:: shell
-
-  sudo groupadd docker
-  sudo usermod -aG docker $USER
-  # Log out/log in for change to take effect
 
 If using a Python version older than 3.9, you will also need to install the
 ``graphlib-backport`` pip package:
@@ -45,6 +34,41 @@ If using a Python version older than 3.9, you will also need to install the
 .. code-block:: shell
 
   sudo pip3 install graphlib-backport
+
+-------------------------------
+If using Docker Runtime Backend
+-------------------------------
+
+If Docker was not previously set up on your system, you will need to install the
+package, create a 'docker' group and add your user to it. This allows shrinkwrap
+to interact with docker without needing sudo. For more information see `docker
+linux-postinstall <https://docs.docker.com/engine/install/linux-postinstall/>`_.
+
+.. code-block:: shell
+
+  sudo apt-get install docker.io
+  sudo groupadd docker
+  sudo usermod -aG docker $USER
+  # Log out/log in for change to take effect
+
+-------------------------------
+If using Podman Runtime Backend
+-------------------------------
+
+.. note::
+
+  Podman is only available within Ubuntu repositories from Ubuntu 20.10 and
+  newer. See `podman installation instructions
+  <https://podman.io/getting-started/installation>`_ for installation methods
+  for other distributions.
+
+.. code-block:: shell
+
+  sudo apt-get install podman
+
+------------------------------
+Optional Environment Variables
+------------------------------
 
 Shrinkwrap consumes the following set of optional environment variables:
 
@@ -66,12 +90,13 @@ kernel. This example uses EDK2 (UEFI) but many other options are available.
 
 .. note::
 
-  By default, the below commands will automatically download and use the
-  appropriate container image from Docker Hub. Alternatively, you can choose to
-  run with the ``null`` runtime by providing ``--runtime=null`` (between
-  ``shrinkwrap`` and the sub-command). This will cause all commands to be
-  executed on the native system. Users are responsible for setting up the
-  environment in this case.
+  By default, the below commands will use the docker runtime and automatically
+  download and use the appropriate container image from Docker Hub.
+  Alternatively, you can choose to run with the ``null`` runtime by providing
+  ``--runtime=null`` (between ``shrinkwrap`` and the sub-command). This will
+  cause all commands to be executed on the native system. Users are responsible
+  for setting up the environment in this case. Or if you have chosen to use
+  Podman as the runtime backend, add ``--runtime=podman``.
 
 First invoke the tool to view help:
 

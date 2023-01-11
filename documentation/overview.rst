@@ -44,7 +44,8 @@ Features
 
 - Introspect and use any of the supplied the out-of-box configurations
 - Create your own configurations by composing with and extending others
-- Choose teh Docker runtime backend or run everything natively if you prefer
+- Choose from Docker or Podman runtime backends or run everything natively if
+  you prefer
 - Ensure Reproducible builds with supplied runtime container images
 - Transparently view the generated bash commands for a given config build or run
 - Parallelize builds to make best use of available resources
@@ -59,8 +60,8 @@ Shrinkwrap is implemented in Python and has a command line interface similar to
 git, with sub-commands that take options. The Python code parses the supplied
 config(s) to generate shell commands that are executed in a backend runtime. The
 runtime is specified by the user and may be ``null`` (executed natively on the
-user's system), or a container runtime such as ``docker``. For the container
-runtimes, a standard image is provided with all tools preinstalled.
+user's system), or a container runtime such as ``docker`` or ``podman``. For the
+container runtimes, a standard image is provided with all tools preinstalled.
 
 ********************
 Repository Structure

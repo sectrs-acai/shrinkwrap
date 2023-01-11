@@ -65,18 +65,20 @@ def main():
 
 	parser.add_argument('-R', '--runtime',
 		metavar='engine', required=False, default='docker',
-		choices=['null', 'docker', 'docker-local'],
+		choices=['null', 'docker', 'docker-local', 'podman', 'podman-local'],
 		help="""Specifies the environment in which to execute build and
 		     run commands. If 'null', executes natively on the host.
 		     'docker' attempts to download the image from dockerhub and
 		     execute the commands in a container. 'docker-local' is like
-		     'docker' but will only look for the image locally. Defaults
-		     to 'docker'.""")
+		     'docker' but will only look for the image locally. 'podman'
+		     and 'podman-local' are like 'docker' and 'docker-local'
+		     except podman is used as the runtime instead of docker.
+		     Defaults to 'docker'.""")
 
 	parser.add_argument('-I', '--image',
 		metavar='name',
 		required=False,
-		default='shrinkwraptool/base-slim:latest',
+		default='docker.io/shrinkwraptool/base-slim:latest',
 		help="""If using a container runtime, specifies the name of the
 		     image to use. Defaults to the official shrinkwrap image.""")
 
