@@ -19,6 +19,7 @@ layers:
   - rmm-base.yaml
   - hafnium-base.yaml
   - linux-base.yaml
+  - kvmtool-base.yaml
   - FVP_Base_RevC-2xAEMvA-base.yaml
   - arch/v9.2.yaml
 
@@ -77,6 +78,14 @@ build:
 
     artifacts:
       SP_LAYOUT: ${param:builddir}/fvp/debug/sp_layout.json
+
+  kvmtool:
+    repo:
+      dtc:
+        revision: v1.6.1
+      kvmtool:
+        remote: https://gitlab.arm.com/linux-arm/kvmtool-cca
+        revision: cca/rfc-v1
 
 run:
   rtvars:

@@ -82,6 +82,11 @@ RUN apt-get install --assume-yes --no-install-recommends --option=debug::pkgProb
 RUN pip3 install \
 		cmake
 
+# Install packages requried by kvmtool.
+RUN apt-get install --assume-yes --no-install-recommends --option=debug::pkgProblemResolver=yes \
+		build-essential \
+		pkg-config
+
 # TODO: Install any packages required by U-Boot, OP-TEE, Trusty, etc.
 
 # Install the aarch64-linux-gnu- toolchain. We use the stock Debian packages for
