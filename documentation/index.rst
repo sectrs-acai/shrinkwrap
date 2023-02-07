@@ -16,4 +16,5 @@ Contents
 
    overview
    userguide/index
+   developerguide/index
    license_file_link
