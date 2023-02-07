@@ -9,15 +9,21 @@ full system on FVP.
 - Source Code is available at: [GitLab](https://gitlab.arm.com/tooling/shrinkwrap)
 - Shrinkwrap Container Images are available at: [DockerHub](https://hub.docker.com/u/shrinkwraptool)
 
-To build the docs locally, the following packages need to be installed on the
-host:
+The documentation (linked above) contains a
+[QuckStart](https://shrinkwrap.docs.arm.com/en/latest/userguide/quickstart.html)
+section, which details how to install and use the tool. However, if you are in a
+hurry, here are the minimal steps:
 
-    sudo apt-get install python3-pip
-    pip3 install -U -r documentation/requirements.txt
+> **NOTE:** This assumes you have Python >=3.9.0 and docker installed. If this
+> is not the case, please refer to the documentation.
 
-To build and generate the documentation in html format, run:
+```
+  sudo apt-get install git netcat-openbsd python3 python3-pip telnet
+  sudo pip3 install pyyaml termcolor tuxmake
+  git clone https://git.gitlab.arm.com/tooling/shrinkwrap.git
+  export PATH=$PWD/shrinkwrap/shrinkwrap:$PATH
+```
 
-    sphinx-build -b html -a -W documentation public
-
-To render and explore the documentation, simply open `public/index.html` in a
-web browser.
+```
+  shrinkwrap --help
+```

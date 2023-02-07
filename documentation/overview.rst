@@ -1,5 +1,5 @@
 ..
- # Copyright (c) 2022, Arm Limited.
+ # Copyright (c) 2022,2023, Arm Limited.
  #
  # SPDX-License-Identifier: MIT
 
@@ -62,6 +62,20 @@ config(s) to generate shell commands that are executed in a backend runtime. The
 runtime is specified by the user and may be ``null`` (executed natively on the
 user's system), or a container runtime such as ``docker`` or ``podman``. For the
 container runtimes, a standard image is provided with all tools preinstalled.
+
+.. image:: images/architecture.png
+
+The command line interface has 2 main commands; build and run. The build command
+takes a configuration (a yaml file) along with an optional overlay which tweaks
+settings in the config, then builds and packages all the components described
+within. The package could optionally be distributed for use by others. The run
+command launches the built package on the FVP, allowing the user to interact
+with it. The definition of how to run the FVP is contained in the original
+config that was supplied at build time and is included in the package. The run
+command allows further tweaking of this runtime config with another optional
+overlay. The user can also optionally provide values for any runtime variables
+(RTVARs) that are defined as part of the config. These are typically used to
+point to the kernel or rootfs that should be used.
 
 ********************
 Repository Structure
