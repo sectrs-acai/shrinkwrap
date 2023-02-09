@@ -87,6 +87,29 @@ build:
         remote: https://gitlab.arm.com/linux-arm/kvmtool-cca
         revision: cca/rfc-v1
 
+  kvm-unit-tests:
+    repo:
+      remote: https://gitlab.arm.com/linux-arm/kvm-unit-tests-cca
+      revision: cca/rfc-v1
+
+    toolchain: aarch64-linux-gnu-
+
+    params:
+      --arch: arm64
+      --cross-prefix: $${CROSS_COMPILE}
+      --target: kvmtool
+
+    build:
+      - ./configure ${param:join_equal}
+      - make -j${param:jobs}
+      - tar -caf ${param:builddir}/kvm-unit-tests.tgz -C ${param:sourcedir} .
+
+    clean:
+      - make -j${param:jobs} clean
+
+    artifacts:
+      KVM_UNIT_TESTS: ${param:builddir}/kvm-unit-tests.tgz
+
 run:
   rtvars:
     BL1:
