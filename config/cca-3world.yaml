@@ -5,9 +5,8 @@
 ---
 description: >-
   Brings together a software stack to demonstrate Arm CCA running on FVP in a
-  four-world configuration. Includes TF-A in root world, Hafnium and some demo
-  secure partitions in secure world, RMM in realm world, and Linux in Normal
-  world.
+  three-world configuration. Includes TF-A in root world, RMM in realm world,
+  and Linux in Normal world.
 
   In order to launch realm VMs, the user must bring their own rootfs that
   contains a realm-aware kvmtool and an RSI-aware guest kernel image.
@@ -17,7 +16,6 @@ concrete: true
 layers:
   - tfa-base.yaml
   - rmm-base.yaml
-  - hafnium-base.yaml
   - linux-base.yaml
   - kvmtool-base.yaml
   - FVP_Base_RevC-2xAEMvA-base.yaml
@@ -29,10 +27,6 @@ build:
       ENABLE_RME: 1
       RMM: ${artifact:RMM}
       CTX_INCLUDE_EL2_REGS: 1
-      SPD: spmd
-      SPMD_SPM_AT_SEL2: 1
-      SP_LAYOUT_FILE: ${artifact:SP_LAYOUT}
-      BL32: ${artifact:HAFNIUM}
       ARM_LINUX_KERNEL_AS_BL33: 1
       PRELOADED_BL33_BASE: 0x84000000
 
@@ -56,28 +50,6 @@ build:
       # config. That's OK for now since we are using the DT.
       - ./scripts/config --file ${param:builddir}/.config --disable CONFIG_ACPI
       - ./scripts/config --file ${param:builddir}/.config --disable CONFIG_CPU_IDLE
-
-  # Provides secure partitions that run under Hafnium for demonstration.
-  tfa-tests:
-    repo:
-      remote: https://git.trustedfirmware.org/TF-A/tf-a-tests.git
-      revision: v2.8
-
-    toolchain: aarch64-none-elf-
-
-    params:
-      PLAT: fvp
-      DEBUG: 1
-
-    build:
-      # TODO: tfa-tests has makefile dependency bug that prevents parallel make (-j > 1).
-      - make BUILD_BASE=${param:builddir} ${param:join_equal} all pack_realm
-
-    clean:
-      - make BUILD_BASE=${param:builddir} realclean
-
-    artifacts:
-      SP_LAYOUT: ${param:builddir}/fvp/debug/sp_layout.json
 
   kvmtool:
     repo:
@@ -147,9 +119,6 @@ run:
 
     bp.terminal_1:
       friendly: tfa-rt
-
-    bp.terminal_2:
-      friendly: hafnium
 
     bp.terminal_3:
       friendly: rmm
