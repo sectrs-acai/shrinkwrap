@@ -6,7 +6,8 @@
 description: >-
   Linux kernel build config. Builds the kernel image and set of modules. Image
   is exported as the KERNEL artifact, while the modules are exported in a tgz
-  archive as the KMODULES artifact.
+  archive as the KMODULES artifact. Modules are only built if a higher level
+  layer specifies `export BUILD_KMODULES=true` in the prebuild section.
 
   By default the defconfig is built. Users can optionally add commands to the
   prebuild list to modify the config (e.g. `./scripts/config ...`) or even
@@ -21,7 +22,7 @@ build:
     toolchain: aarch64-none-elf-
 
     prebuild:
-      - export BUILD_KMODULES=true
+      - export BUILD_KMODULES=false
       - export ARCH=arm64
       - make -j${param:jobs} O=${param:builddir} defconfig
 

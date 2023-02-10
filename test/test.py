@@ -171,6 +171,9 @@ def do_main(smoke_test):
 		build_configs(['bootwrapper.yaml'], arch)
 		run_config_bootwrap('bootwrapper.yaml', BOOTWRAPPER, ROOTFS, arch)
 
+	build_configs(['cca.yaml'])
+	run_config_kern('cca.yaml', KERNEL, ROOTFS)
+
 	print_results()
 
 

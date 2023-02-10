@@ -1,0 +1,155 @@
+# Copyright (c) 2022, Arm Limited.
+# SPDX-License-Identifier: MIT
+
+%YAML 1.2
+---
+description: >-
+  Brings together a software stack to demonstrate Arm CCA running on FVP in a
+  four-world configuration. Includes TF-A in root world, Hafnium and some demo
+  secure partitions in secure world, RMM in realm world, and Linux in Normal
+  world.
+
+  In order to launch realm VMs, the user must bring their own rootfs that
+  contains a realm-aware kvmtool and an RSI-aware guest kernel image.
+
+concrete: true
+
+layers:
+  - tfa-base.yaml
+  - rmm-base.yaml
+  - hafnium-base.yaml
+  - linux-base.yaml
+  - kvmtool-base.yaml
+  - FVP_Base_RevC-2xAEMvA-base.yaml
+  - arch/v9.2.yaml
+
+build:
+  tfa:
+    params:
+      ENABLE_RME: 1
+      RMM: ${artifact:RMM}
+      CTX_INCLUDE_EL2_REGS: 1
+      SPD: spmd
+      SPMD_SPM_AT_SEL2: 1
+      SP_LAYOUT_FILE: ${artifact:SP_LAYOUT}
+      BL32: ${artifact:HAFNIUM}
+      ARM_LINUX_KERNEL_AS_BL33: 1
+      PRELOADED_BL33_BASE: 0x84000000
+
+      # SME is not supported concurrently with CCA yet.
+      ENABLE_SME_FOR_NS: 0
+      ENABLE_SME_FOR_SWD: 0
+      ENABLE_FEAT_HCX: 0
+
+  linux:
+    repo:
+      remote: https://git.gitlab.arm.com/linux-arm/linux-cca.git
+      revision: cca-full/rfc-v1
+
+    prebuild:
+      # Disable CPU_IDLE as a workaround to speed up the FVP. Since we are using
+      # the TF-A DT, which provides CPU idle state parameters, it otherwise
+      # causes Linux to constantly enter cpu idle, slowing the FVP down. We
+      # can't easily use the upstream DT right now, due to some RAM having been
+      # carved out for the RMM and this is not reflected in that DT. CPU_IDLE is
+      # selected by ACPI, so we have to disable that too to maintain a legal
+      # config. That's OK for now since we are using the DT.
+      - ./scripts/config --file ${param:builddir}/.config --disable CONFIG_ACPI
+      - ./scripts/config --file ${param:builddir}/.config --disable CONFIG_CPU_IDLE
+
+  # Provides secure partitions that run under Hafnium for demonstration.
+  tfa-tests:
+    repo:
+      remote: https://git.trustedfirmware.org/TF-A/tf-a-tests.git
+      revision: v2.8
+
+    toolchain: aarch64-none-elf-
+
+    params:
+      PLAT: fvp
+      DEBUG: 1
+
+    build:
+      # TODO: tfa-tests has makefile dependency bug that prevents parallel make (-j > 1).
+      - make BUILD_BASE=${param:builddir} ${param:join_equal} all pack_realm
+
+    clean:
+      - make BUILD_BASE=${param:builddir} realclean
+
+    artifacts:
+      SP_LAYOUT: ${param:builddir}/fvp/debug/sp_layout.json
+
+  kvmtool:
+    repo:
+      dtc:
+        revision: v1.6.1
+      kvmtool:
+        remote: https://gitlab.arm.com/linux-arm/kvmtool-cca
+        revision: cca/rfc-v1
+
+  kvm-unit-tests:
+    repo:
+      remote: https://gitlab.arm.com/linux-arm/kvm-unit-tests-cca
+      revision: cca/rfc-v1
+
+    toolchain: aarch64-linux-gnu-
+
+    params:
+      --arch: arm64
+      --cross-prefix: $${CROSS_COMPILE}
+      --target: kvmtool
+
+    build:
+      - ./configure ${param:join_equal}
+      - make -j${param:jobs}
+      - tar -caf ${param:builddir}/kvm-unit-tests.tgz -C ${param:sourcedir} .
+
+    clean:
+      - make -j${param:jobs} clean
+
+    artifacts:
+      KVM_UNIT_TESTS: ${param:builddir}/kvm-unit-tests.tgz
+
+run:
+  rtvars:
+    BL1:
+      type: path
+      value: ${artifact:BL1}
+
+    FIP:
+      type: path
+      value: ${artifact:FIP}
+
+    KERNEL:
+      type: path
+      value: ${artifact:KERNEL}
+
+    ROOTFS:
+      type: path
+      value: ''
+
+  params:
+    -C bp.secureflashloader.fname: ${rtvar:BL1}
+    -C bp.flashloader0.fname: ${rtvar:FIP}
+    -C bp.virtioblockdevice.image_path: ${rtvar:ROOTFS}
+    --data cluster0.cpu0: ${rtvar:KERNEL}@0x84000000
+    -C cluster0.rme_support_level: 2
+    -C cluster1.rme_support_level: 2
+
+    # SME is not supported concurrently with CCA yet.
+    -C SVE.ScalableVectorExtension.has_sme: 0
+
+
+  terminals:
+    bp.terminal_0:
+      friendly: tfa+linux
+      type: stdinout
+
+    bp.terminal_1:
+      friendly: tfa-rt
+
+    bp.terminal_2:
+      friendly: hafnium
+
+    bp.terminal_3:
+      friendly: rmm
